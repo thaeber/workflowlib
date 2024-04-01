@@ -4,6 +4,9 @@ version = "0.1.0"
 description = ""
 authors = ["thaeber <thomas.haeber@kit.edu>"]
 readme = "README.md"
+packages = [
+    { include = "workflowlib", from = "src" },
+]
 
 
 [tool.poetry.dependencies]
