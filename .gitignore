@@ -1,3 +1,5 @@
+poetry.lock
+
 # vscode settings
 .vscode
 *.code-workspace
