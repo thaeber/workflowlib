@@ -1,4 +1,6 @@
-from typing import Any, Dict, Mapping, Optional, Sequence, Type, TypeVar
+from __future__ import annotations
+
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Type, TypeVar
 
 from .base import ProcessStepBase
 from .registry import get_runner
@@ -49,15 +51,45 @@ def run(workflow, *args):
         raise ValueError('Invalid workflow specification')
 
 
-class ProcessParam:
-    def get_value(self):
-        raise NotImplementedError()
+ProcessDescriptorType = Mapping[str, Any]
+WorkflowDescriptorType = ProcessDescriptorType | Sequence[ProcessDescriptorType]
+
+
+class Workflow:
+    def __init__(self, process: ProcessNode):
+        self.process = process
+
+    def run(self):
+        return self.process.run()
+
+    @staticmethod
+    def _create(descriptor: WorkflowDescriptorType):
+        match descriptor:
+            case {**mapping}:
+                return Workflow._create_process(mapping)
+            case [*sequence]:
+                return Workflow._create_sequence(sequence)
+            case _:
+                raise ValueError(
+                    'The workflow descriptor must be either a mapping or a sequence of mappings.'
+                )
+
+    @staticmethod
+    def _create_process(process: ProcessDescriptorType):
+        # create a single process node from the descriptor (mapping)
+        return ProcessNode.from_mapping(None, process)
+
+    @staticmethod
+    def _create_sequence(sequence: Sequence[ProcessDescriptorType]):
+        # create the process sequence and return the last process in the chain
+        # (each process holds a reference to the previous/parent process in the chain)
+        pass
 
 
 class ProcessNode:
     def __init__(
         self,
-        parent: Optional['ProcessNode'],
+        parent: Optional[ProcessNode],
         runner: ProcessStepBase,
         params: Dict[str, ProcessParam],
     ):
@@ -66,7 +98,7 @@ class ProcessNode:
         self.params = params
 
     @staticmethod
-    def from_mapping(parent: Optional['ProcessNode'], process: Mapping[str, Any]):
+    def from_mapping(parent: Optional['ProcessNode'], process: ProcessDescriptorType):
         # check if the process contains a `$run` element
         if 'run' not in process:
             raise ValueError(
@@ -81,11 +113,13 @@ class ProcessNode:
         params: Dict[str, Any] = {}
         if 'params' in process:
             for key, value in process['params'].items():
-                if key.startswith('$') and isinstance(value, dict):
-                    # value itself is a process, so run it
-                    params[key[1:]] = None
+                if key.startswith('$'):
+                    # value itself is a process
+                    params[key[1:]] = RunnableProcessParam(
+                        Workflow.create(value).process
+                    )
                 else:
-                    params[key] = ProcessParamPlain(value)
+                    params[key] = PlainProcessParam(value)
 
         # invoke process
         return ProcessNode(parent, runner, params)
@@ -96,7 +130,9 @@ class ProcessNode:
         if result is not None:
             return result
 
-        # resolve parameters
+        # resolve parameters;
+        # Each parameter, which itself represents an executable node, is
+        # evaluated before the process of the current node instance is executed.
         params = {key: item.get_value() for key, item in self.params.items()}
 
         if self.parent is not None:
@@ -106,7 +142,12 @@ class ProcessNode:
             return self.runner.process(**params)
 
 
-class ProcessParamPlain:
+class ProcessParam:
+    def get_value(self):
+        raise NotImplementedError()
+
+
+class PlainProcessParam(ProcessParam):
     def __init__(self, value: Any):
         self.value = value
 
@@ -114,7 +155,7 @@ class ProcessParamPlain:
         return self.value
 
 
-class ProcessParamNode:
+class RunnableProcessParam:
     def __init__(self, node: ProcessNode):
         self.node = node
 
