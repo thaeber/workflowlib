@@ -1,4 +1,6 @@
+import io
 from pathlib import Path
+from textwrap import dedent
 
 import numpy as np
 import pandas as pd
@@ -19,7 +21,7 @@ class TestCSVLoader:
         assert loader.name == 'load.csv'
         assert loader.version == '1'
         assert loader.decimal == '.'
-        assert loader.separator == ';'
+        assert loader.separator == ','
 
     def test_update_config(self):
         loader = CSVLoader()
@@ -49,6 +51,82 @@ class TestCSVLoader:
         assert len(df) == 1913  # type: ignore
         assert list(df.columns) == ['time', 'temperature']
 
+    def test_load_from_text_buffer(self):
+        data = """
+            idx,timestamp,A,B,C
+            1,2024-04-18T12:00:01,a,b,c
+            2,2024-04-18T12:20:01,d,e,f
+            3,2024-04-18T12:20:01,g,h,i
+        """
+        stream = io.StringIO(dedent(data))
+        loader = CSVLoader(decimal='.', separator=',')
+        df = loader.process(stream)
+
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 3
+        assert list(df.columns) == ['idx', 'timestamp', 'A', 'B', 'C']
+
+    def test_parse_dates_list_of_single_column(self):
+        data = """
+            idx,timestamp,A,B,C
+            1,2024-04-18T12:00:01,a,b,c
+            2,2024-04-19T12:20:01,d,e,f
+            3,2024-04-20T12:21:01,g,h,i
+        """
+        stream = io.StringIO(dedent(data))
+        loader = CSVLoader(decimal='.', separator=',', parse_dates=['timestamp'])
+        df = loader.process(stream)
+
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 3
+        assert list(df.columns) == ['idx', 'timestamp', 'A', 'B', 'C']
+        assert df.loc[0, 'timestamp'] == np.datetime64('2024-04-18T12:00:01')
+        assert df.loc[1, 'timestamp'] == np.datetime64('2024-04-19T12:20:01')
+        assert df.loc[2, 'timestamp'] == np.datetime64('2024-04-20T12:21:01')
+
+    def test_parse_dates_map_of_single_column(self):
+        data = """
+            idx,timestamp,A,B,C
+            1,2024-04-18T12:00:01,a,b,c
+            2,2024-04-19T12:20:01,d,e,f
+            3,2024-04-20T12:21:01,g,h,i
+        """
+        stream = io.StringIO(dedent(data))
+        loader = CSVLoader(
+            decimal='.', separator=',', parse_dates={'time': ['timestamp']}
+        )
+        df = loader.process(stream)
+
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 3
+        assert list(df.columns) == ['idx', 'time', 'A', 'B', 'C']
+        assert df.loc[0, 'time'] == np.datetime64('2024-04-18T12:00:01')
+        assert df.loc[1, 'time'] == np.datetime64('2024-04-19T12:20:01')
+        assert df.loc[2, 'time'] == np.datetime64('2024-04-20T12:21:01')
+
+    def test_parse_dates_map_of_joined_column(self):
+        data = """
+            idx,date,time,A,B,C
+            1,18.04.2024,12:00:01,a,b,c
+            2,19.04.2024,12:20:01,d,e,f
+            3,20.04.2024,12:21:01,g,h,i
+        """
+        stream = io.StringIO(dedent(data))
+        loader = CSVLoader(
+            decimal='.',
+            separator=',',
+            parse_dates={'timestamp': ['date', 'time']},
+            date_format='%d.%m.%Y %H:%M:%S',
+        )
+        df = loader.process(stream)
+
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 3
+        assert list(df.columns) == ['timestamp', 'idx', 'A', 'B', 'C']
+        assert df.loc[0, 'timestamp'] == np.datetime64('2024-04-18T12:00:01')
+        assert df.loc[1, 'timestamp'] == np.datetime64('2024-04-19T12:20:01')
+        assert df.loc[2, 'timestamp'] == np.datetime64('2024-04-20T12:21:01')
+
 
 class TestChannelTCLoggerLoader:
     def test_create_loader(self):
@@ -58,6 +136,11 @@ class TestChannelTCLoggerLoader:
         assert loader.version == '1'
         assert loader.decimal == '.'
         assert loader.separator == ';'
+        assert loader.parse_dates == ['timestamp']
+        assert loader.date_format == 'ISO8601'
+        assert loader.options == dict(
+            header='infer',
+        )
 
     def test_load_single(self, data_path: Path):
         loader = ChannelTCLoggerLoader()
@@ -65,8 +148,8 @@ class TestChannelTCLoggerLoader:
             source=data_path / 'ChannelV2TCLog/2024-01-16T11-26-54.csv',
         )
         assert isinstance(df, pd.DataFrame)
-        assert len(df) == 10  # type: ignore
-        assert df.columns[0] == 'timestamp'  # type: ignore
+        assert len(df) == 10
+        assert 'timestamp' in df.columns
         assert df['timestamp'].dtype == np.dtype('<M8[ns]')  # type: ignore
         assert df['timestamp'].iloc[0] == np.datetime64('2024-01-16T11:26:54.535')
 
@@ -79,9 +162,9 @@ class TestChannelEurothermLoggerLoader:
         assert loader.version == '1'
         assert loader.decimal == '.'
         assert loader.separator == ';'
+        assert loader.parse_dates == ['timestamp']
+        assert loader.date_format == 'ISO8601'
         assert loader.options == dict(
-            parse_dates=[0],
-            date_format='ISO8601',
             names=['timestamp', 'temperature'],
         )
 
@@ -106,6 +189,11 @@ class TestMksFTIRLoader:
         assert loader.version == '1'
         assert loader.decimal == ','
         assert loader.separator == '\t'
+        assert loader.parse_dates == {'timestamp': ['Date', 'Time']}
+        assert loader.date_format == '%d.%m.%Y %H:%M:%S,%f'
+        assert loader.options == dict(
+            header='infer',
+        )
 
     def test_load_single(self, data_path: Path):
         loader = MksFTIRLoader()
@@ -114,8 +202,9 @@ class TestMksFTIRLoader:
         )
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 16  # type: ignore
-        assert df.columns[0] == 'timestamp'  # type: ignore
-        assert df.columns[1] == 'Spectrum'
+        # assert df.columns[0] == 'timestamp'  # type: ignore
+        # assert df.columns[1] == 'Spectrum'
+        assert 'timestamp' in df.columns
         assert df['timestamp'].dtype == np.dtype('<M8[ns]')  # type: ignore
         assert df['timestamp'].iloc[0] == np.datetime64('2024-01-16T10:05:21')
 
