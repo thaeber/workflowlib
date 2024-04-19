@@ -4,4 +4,5 @@ channels:
 dependencies:
   - python=3.10
   - pip
-  - hdf5  # this will install the HDF5 binaries required by pytables (even on a Mac)
+  - hdf5 # this will install the HDF5 binaries required by pytables (even on a Mac)
+  - jupyter
