@@ -1,39 +1,113 @@
+import io
 import logging
+import os
 import tokenize
 from datetime import datetime
-from functools import cache
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
+import numpy as np
 import pandas as pd
 import pydantic
 
 from ..base import Loader
+from .._typing import FilePath, ReadCsvBuffer
 
 logger = logging.getLogger(__name__)
+
+ParseDatesType = None | List[str] | Dict[str, List[str]]
 
 
 class CSVLoaderBase(Loader):
     decimal: str = '.'
-    separator: str = ';'
+    separator: str = ','
     options: Dict[str, Any] = pydantic.Field(default_factory=dict)  # type: ignore
     concatenate: bool = True
+    date_format: str = 'ISO8601'
+    parse_dates: ParseDatesType = None
 
-    def process(self, source):
-        data = [self._load(source) for source in Loader.get_sources(source)]
-        if self.concatenate:
-            data = pd.concat(data)
+    def process(self, source: FilePath | ReadCsvBuffer):
+        if isinstance(source, FilePath):
+            # load using filename (possible a glob pattern)
+            data = [self._process_single(source) for source in Loader.glob(source)]
+            if self.concatenate:
+                data = pd.concat(data)
+            return data
+        else:
+            # load from text buffer (e.g. file buffer or StringIO)
+            return self._process_single(source)
 
-        return data
+    def _process_single(self, source):
+        df = self._load(source)
+        df = self._parse_dates(df)
+        return df
 
-    def _load(self, filename: Path) -> pd.DataFrame:
-        logger.info(f'Loading: {filename.name} ({filename.parent})')
-        if not filename.exists():
-            logger.error('File does not exists')
-            raise FileNotFoundError(filename)
+    def _load(self, source: Path | ReadCsvBuffer) -> pd.DataFrame:
+        if isinstance(source, Path):
+            logger.info(f'Loading CSV data from: {source.name} ({source.parent})')
+            if not source.exists():
+                logger.error('File does not exists')
+                raise FileNotFoundError(source)
+        else:
+            logger.info('Reading CSV data from text buffer')
         df = pd.read_csv(
-            filename, sep=self.separator, decimal=self.decimal, **self.options
+            source, sep=self.separator, decimal=self.decimal, **self.options
         )
+        return df
+
+    def _parse_dates_joining_columns(
+        self, df: pd.DataFrame, target_name: str, column_names: List[str]
+    ):
+
+        def join_columns(column_names):
+            return df[column_names].astype(str).agg(' '.join, axis=1)
+
+        # generate datetime series from columns
+        dt = pd.to_datetime(join_columns(column_names), format=self.date_format)
+
+        # drop source columns
+        df = df.drop(columns=column_names)
+
+        # insert new column at the front (in place operation)
+        df.insert(0, target_name, dt)
+
+        return df
+
+    def _parse_dates_replacing_single_column(self, df: pd.DataFrame, column: str):
+        # get (index) location of original column
+        index = df.columns.get_loc(column)
+        if not isinstance(index, int):
+            raise ValueError(
+                f'Column label must be unique. Found multiple indices ({index}) for label ({column}).'
+            )
+
+        # "pop" column & generate datetime series
+        dt = pd.to_datetime(df.pop(column), format=self.date_format)
+
+        # insert new column at original index
+        df.insert(index, column, dt)
+
+        return df
+
+    def _parse_dates(self, df: pd.DataFrame):
+        if self.parse_dates is None:
+            return df
+
+        match self.parse_dates:
+            case [*column_names]:
+                for col in column_names:
+                    df = self._parse_dates_replacing_single_column(df, col)
+            case {**nested}:
+                # loop over mappings
+                for key, column_names in nested.items():
+                    if len(column_names) == 1:
+                        name = column_names[0]
+                        df = self._parse_dates_replacing_single_column(df, name)
+                        if key != name:
+                            df.rename(columns={name: key}, inplace=True, errors='raise')
+                    else:
+                        df = self._parse_dates_joining_columns(df, key, column_names)
+
         return df
 
 
@@ -48,9 +122,9 @@ class ChannelTCLoggerLoader(CSVLoaderBase):
 
     decimal: str = '.'
     separator: str = ';'
+    parse_dates: ParseDatesType = ['timestamp']
+    date_format: str = 'ISO8601'
     options: Dict[str, Any] = dict(
-        parse_dates=[0],
-        date_format='ISO8601',
         header='infer',
     )
 
@@ -61,9 +135,9 @@ class ChannelEurothermLoggerLoader(CSVLoaderBase):
 
     decimal: str = '.'
     separator: str = ';'
+    parse_dates: ParseDatesType = ['timestamp']
+    date_format: str = 'ISO8601'
     options: Dict[str, Any] = dict(
-        parse_dates=[0],
-        date_format='ISO8601',
         names=['timestamp', 'temperature'],
     )
 
@@ -74,9 +148,9 @@ class MksFTIRLoader(CSVLoaderBase):
 
     decimal: str = ','
     separator: str = '\t'
+    parse_dates: ParseDatesType = {'timestamp': ['Date', 'Time']}
+    date_format: str = '%d.%m.%Y %H:%M:%S,%f'
     options: Dict[str, Any] = dict(
-        parse_dates={'timestamp': [1, 2]},
-        date_format='%d.%m.%Y %H:%M:%S,%f',
         header='infer',
     )
 
