@@ -11,7 +11,7 @@ class TestLoader:
         )
 
         sources = list(
-            loader.get_sources(
+            loader.glob(
                 source=data_path / 'eurotherm/20240118T084901.txt',
             )
         )
@@ -24,7 +24,7 @@ class TestLoader:
         )
 
         sources = list(
-            loader.get_sources(
+            loader.glob(
                 source=data_path / 'eurotherm/*.txt',
             )
         )
@@ -45,7 +45,7 @@ class TestLoader:
         )
 
         sources = list(
-            loader.get_sources(
+            loader.glob(
                 source=data_path / 'eurotherm/subfolder/**/*.txt',
             )
         )

@@ -1,3 +1,5 @@
+import io
+import os
 from pathlib import Path
 from typing import Any, Optional
 
@@ -26,7 +28,7 @@ class ProcessStepBase(pydantic.BaseModel):
 
 class Loader(ProcessStepBase):
     @staticmethod
-    def get_sources(source: str | Path):
+    def glob(source: str | os.PathLike):
         path = Path(source)
 
         path = path.absolute()
