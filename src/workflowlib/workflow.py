@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import deque
 from typing import Any, Dict, Mapping, Optional, Sequence
 
-from .base import ProcessStepBase
+from .process import ProcessBase
 from .registry import get_runner
 
 ProcessDescriptorType = Mapping[str, Any]
@@ -80,7 +80,7 @@ class ProcessNode:
     def __init__(
         self,
         parent: Optional[ProcessNode],
-        runner: ProcessStepBase,
+        runner: ProcessBase,
         params: Dict[str, ProcessParam],
     ):
         self.parent = parent
@@ -100,9 +100,9 @@ class ProcessNode:
 
         if self.parent is not None:
             source = self.parent.run()
-            return self.runner.process(source, **params)
+            return self.runner.run(source, **params)
         else:
-            return self.runner.process(**params)
+            return self.runner.run(**params)
 
 
 class ProcessParam:

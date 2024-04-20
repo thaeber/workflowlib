@@ -4,7 +4,7 @@ from typing import Any, Dict, Literal
 import pandas as pd
 import pydantic
 
-from ..base import Serializer
+from ..process import Serializer
 
 DataFrameFormat = Literal['csv', 'HDF5']
 

@@ -3,12 +3,12 @@ import pandas as pd
 
 import pydantic
 
-from ..base import ProcessStepBase, Serializer
+from ..process import ProcessBase, Serializer
 from .pandas_dataframe import PandasDataFrameSerializer
 from ..registry import get_runner
 
 
-class FileCache(ProcessStepBase):
+class FileCache(ProcessBase):
     name: str = 'file.cache'
     version: str = '1'
     serializer: str = 'auto'
@@ -24,7 +24,7 @@ class FileCache(ProcessStepBase):
             assert isinstance(ser, Serializer)
             return ser
 
-    def process(self, source, target: Path):
+    def run(self, source, target: Path):
         ser = self.get_serializer(source)
 
         if not target.exists():

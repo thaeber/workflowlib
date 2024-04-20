@@ -5,7 +5,7 @@ import pandas as pd
 from pandas._typing import JoinHow
 import pint_pandas
 
-from ..base import Transform
+from ..process import Transform
 
 
 class DataFrameSetIndex(Transform):
@@ -13,7 +13,7 @@ class DataFrameSetIndex(Transform):
     version: str = '1'
     sort: bool = True
 
-    def process(
+    def run(
         self,
         source: pd.DataFrame,
         index_var: None | str | List[str] = None,
@@ -63,7 +63,7 @@ class DataFrameJoin(Transform):
 
         return df
 
-    def process(
+    def run(
         self,
         left: pd.DataFrame,
         right: pd.DataFrame,
@@ -90,7 +90,7 @@ class DataFrameInterpolate(Transform):
     name: str = 'dataframe.interpolate'
     version: str = '1'
 
-    def process(
+    def run(
         self,
         df: pd.DataFrame,
         include: None | Iterable[str] = None,
@@ -142,7 +142,7 @@ class DataFrameFillNA(Transform):
     name: str = 'dataframe.fillna'
     version: str = '1'
 
-    def process(
+    def run(
         self,
         df: pd.DataFrame,
         include: None | Iterable[str] = None,
@@ -172,7 +172,7 @@ class DataFrameUnits(Transform):
     name: str = 'dataframe.units'
     version: str = '1'
 
-    def process(
+    def run(
         self,
         source: pd.DataFrame,
         units: Mapping[str, str] | None = None,

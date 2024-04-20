@@ -16,13 +16,13 @@ class TestSelectColumns:
 
     def test_select_single(self, data_path: Path):
         loader = ChannelTCLoggerLoader()
-        df = loader.process(
+        df = loader.run(
             source=data_path / 'ChannelV2TCLog/2024-01-16T11-26-54.csv',
         )
         assert isinstance(df, pd.DataFrame)
 
         transform = SelectColumns()
-        df = transform.process(
+        df = transform.run(
             df,
             select='sample-downstream',
         )
@@ -32,13 +32,13 @@ class TestSelectColumns:
 
     def test_select_multiple(self, data_path: Path):
         loader = ChannelTCLoggerLoader()
-        df = loader.process(
+        df = loader.run(
             source=data_path / 'ChannelV2TCLog/2024-01-16T11-26-54.csv',
         )
         assert isinstance(df, pd.DataFrame)
 
         transform = SelectColumns()
-        df = transform.process(
+        df = transform.run(
             df,
             select=['sample-downstream', 'timestamp'],
         )
@@ -48,13 +48,13 @@ class TestSelectColumns:
 
     def test_select_and_rename(self, data_path: Path):
         loader = ChannelTCLoggerLoader()
-        df = loader.process(
+        df = loader.run(
             source=data_path / 'ChannelV2TCLog/2024-01-16T11-26-54.csv',
         )
         assert isinstance(df, pd.DataFrame)
 
         transform = SelectColumns()
-        df = transform.process(
+        df = transform.run(
             df,
             select={
                 'sample-downstream': 'sample',
@@ -75,13 +75,13 @@ class TestSelectTimespan:
 
     def test_process(self, data_path: Path):
         loader = ChannelTCLoggerLoader()
-        df = loader.process(
+        df = loader.run(
             source=data_path / 'ChannelV2TCLog/2024-01-16T11-26-54.csv',
         )
         assert isinstance(df, pd.DataFrame)
 
         transform = SelectTimespan()
-        df = transform.process(
+        df = transform.run(
             df,
             'timestamp',
             start='2024-01-16T11:26:54.9',
