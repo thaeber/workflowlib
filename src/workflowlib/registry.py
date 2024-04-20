@@ -1,11 +1,11 @@
 from typing import Dict
 
-from .base import ProcessStepBase
+from .process import ProcessBase
 
-_registry: Dict[str, ProcessStepBase] = {}
+_registry: Dict[str, ProcessBase] = {}
 
 
-def register(runner: ProcessStepBase):
+def register(runner: ProcessBase):
     # check if a runner with that name is already in the registry
     if runner.fullname in _registry:
         raise ValueError(f'A runner with the name {runner.fullname} already exists')

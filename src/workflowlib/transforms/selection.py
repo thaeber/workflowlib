@@ -3,14 +3,14 @@ from typing import Dict, List, Mapping, Sequence
 import numpy as np
 import pandas as pd
 
-from ..base import Transform
+from ..process import Transform
 
 
 class SelectColumns(Transform):
     name: str = 'select.columns'
     version: str = '1'
 
-    def process(
+    def run(
         self,
         source: pd.DataFrame,
         select: None | str | List[str] | Dict[str, str] = None,
@@ -29,7 +29,7 @@ class SelectTimespan(Transform):
     name: str = 'select.timespan'
     version: str = '1'
 
-    def process(self, source: pd.DataFrame, column: str, start=None, stop=None):
+    def run(self, source: pd.DataFrame, column: str, start=None, stop=None):
         col = source[column]
         if (start is not None) and (stop is not None):
             start = np.datetime64(start)

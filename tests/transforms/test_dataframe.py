@@ -34,7 +34,7 @@ class TestDataFrameJoin:
         transform = DataFrameJoin()
         left, right = self._get_test_data()
 
-        df = transform.process(left, right, interpolate=True)
+        df = transform.run(left, right, interpolate=True)
 
         assert isinstance(df, pd.DataFrame)
         assert list(df.index) == [0, 1.5, 2, 3, 4, 4.5, 6, 7.5, 8, 9, 10, 10.5, 12]
@@ -53,7 +53,7 @@ class TestDataFrameJoin:
         transform = DataFrameJoin()
         left, right = self._get_test_data()
 
-        df = transform.process(left, right)
+        df = transform.run(left, right)
 
         assert isinstance(df, pd.DataFrame)
         assert list(df.index) == [0, 1.5, 2, 3, 4, 4.5, 6, 7.5, 8, 9, 10, 10.5, 12]
@@ -72,7 +72,7 @@ class TestDataFrameJoin:
         transform = DataFrameJoin()
         left, right = self._get_test_data()
 
-        df = transform.process(left, right, how='right', interpolate=True)
+        df = transform.run(left, right, how='right', interpolate=True)
 
         assert isinstance(df, pd.DataFrame)
         assert list(df.index) == [0, 1.5, 3, 4.5, 6, 7.5, 9, 10.5, 12]
@@ -87,7 +87,7 @@ class TestDataFrameJoin:
         transform = DataFrameJoin()
         left, right = self._get_test_data()
 
-        df = transform.process(left, right, how='right')
+        df = transform.run(left, right, how='right')
 
         assert isinstance(df, pd.DataFrame)
         assert list(df.index) == [0, 1.5, 3, 4.5, 6, 7.5, 9, 10.5, 12]
@@ -102,7 +102,7 @@ class TestDataFrameJoin:
         transform = DataFrameJoin()
         left, right = self._get_test_data()
 
-        df = transform.process(left, right, how='left', interpolate=True)
+        df = transform.run(left, right, how='left', interpolate=True)
 
         assert isinstance(df, pd.DataFrame)
         assert list(df.index) == [0, 2, 4, 6, 8, 10, 12]
@@ -115,7 +115,7 @@ class TestDataFrameJoin:
         transform = DataFrameJoin()
         left, right = self._get_test_data()
 
-        df = transform.process(left, right, how='left')
+        df = transform.run(left, right, how='left')
 
         assert isinstance(df, pd.DataFrame)
         assert list(df.index) == [0, 2, 4, 6, 8, 10, 12]
@@ -129,7 +129,7 @@ class TestDataFrameJoin:
         left, right = self._get_test_data()
         right['C'] = pint_pandas.PintArray(right['C'], dtype='pint[m]')
 
-        df = transform.process(left, right, how='left', interpolate=True)
+        df = transform.run(left, right, how='left', interpolate=True)
 
         assert isinstance(df, pd.DataFrame)
         assert list(df.index) == [0, 2, 4, 6, 8, 10, 12]
@@ -151,13 +151,13 @@ class TestDataFrameSetIndex:
 
     def test_process(self, data_path: Path):
         loader = ChannelTCLoggerLoader()
-        df = loader.process(
+        df = loader.run(
             source=data_path / 'ChannelV2TCLog/2024-01-16T11-26-54.csv',
         )
         assert isinstance(df, pd.DataFrame)
 
         transform = DataFrameSetIndex()
-        df = transform.process(
+        df = transform.run(
             df,
             index_var=['timestamp'],
         )
@@ -175,7 +175,7 @@ class TestDataFrameUnits:
 
     def test_process(self, data_path: Path):
         loader = ChannelTCLoggerLoader()
-        df = loader.process(
+        df = loader.run(
             source=data_path / 'ChannelV2TCLog/2024-01-16T11-26-54.csv',
         )
         assert isinstance(df, pd.DataFrame)
@@ -183,7 +183,7 @@ class TestDataFrameUnits:
         df = df[['sample-downstream', 'inlet', 'outlet']]
 
         transform = DataFrameUnits()
-        df = transform.process(
+        df = transform.run(
             df,
             units={'sample-downstream': 'K'},
         )
@@ -193,7 +193,7 @@ class TestDataFrameUnits:
 
     def test_process_with_default(self, data_path: Path):
         loader = ChannelTCLoggerLoader()
-        df = loader.process(
+        df = loader.run(
             source=data_path / 'ChannelV2TCLog/2024-01-16T11-26-54.csv',
         )
         assert isinstance(df, pd.DataFrame)
@@ -201,7 +201,7 @@ class TestDataFrameUnits:
         df = df[['sample-downstream', 'inlet', 'outlet']]
 
         transform = DataFrameUnits()
-        df = transform.process(
+        df = transform.run(
             df,
             units={'sample-downstream': 'K'},
             default_unit='degC',

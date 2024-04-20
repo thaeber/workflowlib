@@ -6,7 +6,7 @@ from typing import Any, Optional
 import pydantic
 
 
-class ProcessStepBase(pydantic.BaseModel):
+class ProcessBase(pydantic.BaseModel):
     name: str
     version: str
 
@@ -15,10 +15,13 @@ class ProcessStepBase(pydantic.BaseModel):
         _config.update(config)
         return self.model_validate(_config)
 
-    def process(self, source) -> Any:
-        pass
+    def run(self, *args, **kwargs) -> Any:
+        if len(args) == 1:
+            return args[0]
+        else:
+            return (*args,)
 
-    def pre_process_hook(self) -> Optional[Any]:
+    def preprocess(self):
         return None
 
     @property
@@ -26,7 +29,7 @@ class ProcessStepBase(pydantic.BaseModel):
         return f'{self.name}@v{self.version}'
 
 
-class Loader(ProcessStepBase):
+class Loader(ProcessBase):
     @staticmethod
     def glob(source: str | os.PathLike):
         path = Path(source)
@@ -49,7 +52,7 @@ class Loader(ProcessStepBase):
             yield src
 
 
-class Serializer(ProcessStepBase):
+class Serializer(ProcessBase):
     def ensure_parent_path_exists(self, uri: Path):
         if not uri.parent.exists():
             uri.parent.mkdir(parents=True)
@@ -62,7 +65,7 @@ class Serializer(ProcessStepBase):
         pass
 
 
-class Transform(ProcessStepBase):
+class Transform(ProcessBase):
     pass
 
 

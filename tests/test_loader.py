@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from workflowlib.base import Loader
+from workflowlib.process import Loader
 
 
 class TestLoader:

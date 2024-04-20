@@ -33,7 +33,7 @@ class TestCSVLoader:
         loader = CSVLoader(
             options=dict(names=['time', 'temperature']),
         )
-        df = loader.process(
+        df = loader.run(
             source=data_path / 'eurotherm/20240118T084901.txt',
         )
         assert isinstance(df, pd.DataFrame)
@@ -44,7 +44,7 @@ class TestCSVLoader:
         loader = CSVLoader(
             options=dict(names=['time', 'temperature']),
         )
-        df = loader.process(
+        df = loader.run(
             data_path / 'eurotherm/20240118T084901.txt',
         )
         assert isinstance(df, pd.DataFrame)
@@ -60,7 +60,7 @@ class TestCSVLoader:
         """
         stream = io.StringIO(dedent(data))
         loader = CSVLoader(decimal='.', separator=',')
-        df = loader.process(stream)
+        df = loader.run(stream)
 
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 3
@@ -75,7 +75,7 @@ class TestCSVLoader:
         """
         stream = io.StringIO(dedent(data))
         loader = CSVLoader(decimal='.', separator=',', parse_dates=['timestamp'])
-        df = loader.process(stream)
+        df = loader.run(stream)
 
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 3
@@ -95,7 +95,7 @@ class TestCSVLoader:
         loader = CSVLoader(
             decimal='.', separator=',', parse_dates={'time': ['timestamp']}
         )
-        df = loader.process(stream)
+        df = loader.run(stream)
 
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 3
@@ -118,7 +118,7 @@ class TestCSVLoader:
             parse_dates={'timestamp': ['date', 'time']},
             date_format='%d.%m.%Y %H:%M:%S',
         )
-        df = loader.process(stream)
+        df = loader.run(stream)
 
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 3
@@ -144,7 +144,7 @@ class TestChannelTCLoggerLoader:
 
     def test_load_single(self, data_path: Path):
         loader = ChannelTCLoggerLoader()
-        df = loader.process(
+        df = loader.run(
             source=data_path / 'ChannelV2TCLog/2024-01-16T11-26-54.csv',
         )
         assert isinstance(df, pd.DataFrame)
@@ -170,7 +170,7 @@ class TestChannelEurothermLoggerLoader:
 
     def test_load_single(self, data_path: Path):
         loader = ChannelEurothermLoggerLoader()
-        df = loader.process(
+        df = loader.run(
             source=data_path / 'eurotherm/*.txt',
         )
         assert isinstance(df, pd.DataFrame)
@@ -197,7 +197,7 @@ class TestMksFTIRLoader:
 
     def test_load_single(self, data_path: Path):
         loader = MksFTIRLoader()
-        df = loader.process(
+        df = loader.run(
             source=data_path / 'mks_ftir/2024-01-16-conc.prn',
         )
         assert isinstance(df, pd.DataFrame)
@@ -220,7 +220,7 @@ class TestHidenRGALoader:
 
     def test_load_single(self, data_path: Path):
         loader = HidenRGALoader()
-        df = loader.process(
+        df = loader.run(
             source=data_path / 'hiden/ae03_20240123_nh3lo_n2_2nlpm_f06_test1.csv',
         )
         assert isinstance(df, pd.DataFrame)
@@ -233,7 +233,7 @@ class TestHidenRGALoader:
 
     def test_different_separator(self, data_path: Path):
         loader = HidenRGALoader(separator=',')
-        df = loader.process(
+        df = loader.run(
             source=data_path / 'hiden/ae11_nh3x_n2_2nlpm_allars7-9_f02.csv',
         )
         assert isinstance(df, pd.DataFrame)
@@ -246,7 +246,7 @@ class TestHidenRGALoader:
 
     def test_date_parsing1(self, data_path: Path):
         loader = HidenRGALoader()
-        df = loader.process(
+        df = loader.run(
             source=data_path / 'hiden/ae03_20240123_nh3lo_n2_2nlpm_f06_test1.csv',
         )
         assert isinstance(df, pd.DataFrame)
@@ -255,7 +255,7 @@ class TestHidenRGALoader:
 
     def test_date_parsing2(self, data_path: Path):
         loader = HidenRGALoader(separator=',')
-        df = loader.process(
+        df = loader.run(
             source=data_path / 'hiden/ae11_nh3x_n2_2nlpm_allars7-9_f02.csv',
         )
         assert isinstance(df, pd.DataFrame)
@@ -264,7 +264,7 @@ class TestHidenRGALoader:
 
     def test_date_parsing3(self, data_path: Path):
         loader = HidenRGALoader(separator=';')
-        df = loader.process(
+        df = loader.run(
             source=data_path / 'hiden/ae11_nh3x_n2_2nlpm_allars7-9_f06.csv',
         )
         assert isinstance(df, pd.DataFrame)

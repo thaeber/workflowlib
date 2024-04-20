@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import pydantic
 
-from ..base import Loader
+from ..process import Loader
 from .._typing import FilePath, ReadCsvBuffer
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class CSVLoaderBase(Loader):
     date_format: str = 'ISO8601'
     parse_dates: ParseDatesType = None
 
-    def process(self, source: FilePath | ReadCsvBuffer):
+    def run(self, source: FilePath | ReadCsvBuffer):
         if isinstance(source, FilePath):
             # load using filename (possible a glob pattern)
             data = [self._process_single(source) for source in Loader.glob(source)]
@@ -212,7 +212,7 @@ class HidenRGALoader(CSVLoaderBase):
         cols.insert(0, cols.pop(cols.index('timestamp')))
         return df[cols]
 
-    def process(self, source):
+    def run(self, source):
         with open(source, 'r') as file:
             header = self.parse_header(file)
         t0 = datetime.combine(header['date'], header['time'])
@@ -221,7 +221,7 @@ class HidenRGALoader(CSVLoaderBase):
         if 'skiprows' not in self.options:
             self.options.update(skiprows=header['header_lines'] + 1)
 
-        data = super().process(source)
+        data = super().run(source)
 
         if isinstance(data, list):
             return [self.create_timestamp(df, t0) for df in data]
