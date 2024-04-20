@@ -15,10 +15,13 @@ class ProcessBase(pydantic.BaseModel):
         _config.update(config)
         return self.model_validate(_config)
 
-    def run(self, source) -> Any:
-        pass
+    def run(self, *args, **kwargs) -> Any:
+        if len(args) == 1:
+            return args[0]
+        else:
+            return (*args,)
 
-    def pre_process_hook(self) -> Optional[Any]:
+    def preprocess(self):
         return None
 
     @property

@@ -88,10 +88,13 @@ class ProcessNode:
         self.params = params
 
     def run(self):
-        # resolve pre-process hooks (e.g. caching)
-        result = self.runner.pre_process_hook()
-        if result is not None:
-            return result
+        # pre-processing
+        arg = self.runner.preprocess()
+
+        # if pre-processing yields a result, we will return that
+        # (useful, e.g. for caching)
+        if arg is not None:
+            return arg
 
         # resolve parameters;
         # Each parameter, which itself represents an executable node, is
@@ -99,9 +102,13 @@ class ProcessNode:
         params = {key: item.get_value() for key, item in self.params.items()}
 
         if self.parent is not None:
-            source = self.parent.run()
-            return self.runner.run(source, **params)
+            # call parent node
+            arg = self.parent.run()
+
+            # pass result from parent node to current process
+            return self.runner.run(arg, **params)
         else:
+            # there is parent (first process in chain); just run the process
             return self.runner.run(**params)
 
 
