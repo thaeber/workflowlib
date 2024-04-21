@@ -23,6 +23,7 @@ tables = "^3.9.2"
 pytest = ">=7.4.2"
 bump-my-version = "^0.20.0"
 pandas-stubs = "^2.2.1.240316"
+pytest-watcher = "^0.4.2"
 
 [build-system]
 requires = ["poetry-core"]
