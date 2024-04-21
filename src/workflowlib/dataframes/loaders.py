@@ -1,12 +1,7 @@
-import io
 import logging
-import os
-import tokenize
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-import numpy as np
 import pandas as pd
 import pydantic
 
@@ -18,7 +13,7 @@ logger = logging.getLogger(__name__)
 ParseDatesType = None | List[str] | Dict[str, List[str]]
 
 
-class CSVLoaderBase(Loader):
+class DataFrameReadCSVBase(Loader):
     decimal: str = '.'
     separator: str = ','
     options: Dict[str, Any] = pydantic.Field(default_factory=dict)  # type: ignore
@@ -111,119 +106,6 @@ class CSVLoaderBase(Loader):
         return df
 
 
-class CSVLoader(CSVLoaderBase):
+class DataFrameReadCSV(DataFrameReadCSVBase):
     version: str = '1'
-    name: str = 'load.csv'
-
-
-class ChannelTCLoggerLoader(CSVLoaderBase):
-    name: str = 'channel.tclogger'
-    version: str = '1'
-
-    decimal: str = '.'
-    separator: str = ';'
-    parse_dates: ParseDatesType = ['timestamp']
-    date_format: str = 'ISO8601'
-    options: Dict[str, Any] = dict(
-        header='infer',
-    )
-
-
-class ChannelEurothermLoggerLoader(CSVLoaderBase):
-    name: str = 'channel.eurotherm'
-    version: str = '1'
-
-    decimal: str = '.'
-    separator: str = ';'
-    parse_dates: ParseDatesType = ['timestamp']
-    date_format: str = 'ISO8601'
-    options: Dict[str, Any] = dict(
-        names=['timestamp', 'temperature'],
-    )
-
-
-class MksFTIRLoader(CSVLoaderBase):
-    name: str = 'mks.ftir'
-    version: str = '1'
-
-    decimal: str = ','
-    separator: str = '\t'
-    parse_dates: ParseDatesType = {'timestamp': ['Date', 'Time']}
-    date_format: str = '%d.%m.%Y %H:%M:%S,%f'
-    options: Dict[str, Any] = dict(
-        header='infer',
-    )
-
-
-class HidenRGALoader(CSVLoaderBase):
-    name: str = 'hiden.rga'
-    version: str = '1'
-
-    decimal: str = '.'
-    separator: str = ';'
-
-    def parse_header(self, file):
-        header = {}
-        tokens = tokenize.generate_tokens(file.readline)
-
-        def _is_separator(token):
-            return (token.type == tokenize.NEWLINE) or (
-                token.type == tokenize.OP and token.string == self.separator
-            )
-
-        def split_by_tokens():
-            stack = []
-            for token in tokens:
-                if _is_separator(token):
-                    if stack:
-                        joined = ''.join(t.string for t in stack)
-                        yield joined
-                        stack.clear()
-                else:
-                    stack.append(token)
-
-        def parse_date(date_str: str):
-            try:
-                return datetime.strptime(date_str, r'%d.%m.%Y')
-            except ValueError:
-                return datetime.strptime(date_str, r'%Y-%m-%d')
-
-        items = split_by_tokens()
-        header['scans'] = int(next(items))
-        assert next(items) == 'scans'
-        header['data_length'] = int(next(items))
-        assert next(items) == 'DataLength'
-        assert next(items) == '"header"'
-        header['header_lines'] = int(next(items))
-        assert next(items) == '"lines"'
-        assert next(items) == '"Date"'
-        header['date'] = parse_date(next(items)).date()
-        assert next(items) == '"Time"'
-        header['time'] = datetime.strptime(next(items), r'%H:%M:%S').time()
-
-        return header
-
-    def create_timestamp(self, df: pd.DataFrame, t0: datetime):
-        # create timestamp column
-        df['timestamp'] = t0 + df['ms'].astype('<m8[ms]')  # type: ignore
-
-        # move timestamp to front
-        cols = list(df.columns)
-        cols.insert(0, cols.pop(cols.index('timestamp')))
-        return df[cols]
-
-    def run(self, source):
-        with open(source, 'r') as file:
-            header = self.parse_header(file)
-        t0 = datetime.combine(header['date'], header['time'])
-
-        # skip header lines
-        if 'skiprows' not in self.options:
-            self.options.update(skiprows=header['header_lines'] + 1)
-
-        data = super().run(source)
-
-        if isinstance(data, list):
-            return [self.create_timestamp(df, t0) for df in data]
-        else:
-            return self.create_timestamp(data, t0)
+    name: str = 'dataframe.readcsv'

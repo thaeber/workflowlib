@@ -1,12 +1,15 @@
 from ..registry import register
-from .dataframe import (
+from .loaders import DataFrameReadCSV
+from .selection import SelectColumns, SelectTimespan
+from .transforms import (
     DataFrameFillNA,
     DataFrameInterpolate,
     DataFrameJoin,
     DataFrameSetIndex,
     DataFrameUnits,
 )
-from .selection import SelectColumns, SelectTimespan
+
+register(DataFrameReadCSV())
 
 register(DataFrameFillNA())
 register(DataFrameInterpolate())

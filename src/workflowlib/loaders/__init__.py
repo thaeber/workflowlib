@@ -1,14 +1,10 @@
 from ..registry import register
-from .csv_loader import (
-    ChannelEurothermLoggerLoader,
-    ChannelTCLoggerLoader,
-    CSVLoader,
-    HidenRGALoader,
-    MksFTIRLoader,
-)
+from .channel.eurotherm import ChannelEurothermLoggerLoader
+from .channel.tclogger import ChannelTCLoggerLoader
+from .hiden_rga import HidenRGALoader
+from .mks_ftir import MksFTIRLoader
 
-register(CSVLoader())
-register(ChannelTCLoggerLoader())
 register(ChannelEurothermLoggerLoader())
+register(ChannelTCLoggerLoader())
 register(HidenRGALoader())
 register(MksFTIRLoader())
