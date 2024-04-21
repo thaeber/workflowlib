@@ -178,6 +178,9 @@ class TestWorkflow:
             def preprocess(self):
                 return 'pre-processed result'
 
+            def run(self, *args, **kwargs):
+                return args[0]
+
         register(Dummy(name='dummy', version='1'))
 
         descriptor = [

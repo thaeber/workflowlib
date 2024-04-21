@@ -1,12 +1,12 @@
-import io
+import abc
 import os
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import pydantic
 
 
-class ProcessBase(pydantic.BaseModel):
+class ProcessBase(pydantic.BaseModel, abc.ABC):
     name: str
     version: str
 
@@ -15,11 +15,9 @@ class ProcessBase(pydantic.BaseModel):
         _config.update(config)
         return self.model_validate(_config)
 
+    @abc.abstractmethod
     def run(self, *args, **kwargs) -> Any:
-        if len(args) == 1:
-            return args[0]
-        else:
-            return (*args,)
+        pass
 
     def preprocess(self):
         return None
