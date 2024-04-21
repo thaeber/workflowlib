@@ -5,8 +5,8 @@ from typing import Any, Dict, List
 import pandas as pd
 import pydantic
 
-from ..process import Loader
 from .._typing import FilePath, ReadCsvBuffer
+from ..process import Loader
 
 logger = logging.getLogger(__name__)
 
