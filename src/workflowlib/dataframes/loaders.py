@@ -111,4 +111,4 @@ class DataFrameReadCSVBase(Loader):
 
 class DataFrameReadCSV(DataFrameReadCSVBase):
     version: str = '1'
-    name: str = 'dataframe.readcsv'
+    name: str = 'dataframe.read_csv'

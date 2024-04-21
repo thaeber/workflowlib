@@ -50,6 +50,26 @@ class Loader(ProcessBase):
             yield src
 
 
+class Writer(ProcessBase):
+    @staticmethod
+    def ensure_path(filepath: str | os.PathLike):
+        """Ensures that the parent path of the given file exists.
+        Creates the path if it does not exists.
+
+        Args:
+            filepath (str | os.PathLike): The path and filename to the file.
+
+        Returns:
+            Path: The original filepath wrapped in a `Path`instance.
+        """
+        path = Path(filepath)
+
+        if not path.parent.exists():
+            path.parent.mkdir(parents=True, exist_ok=True)
+
+        return path
+
+
 class Serializer(ProcessBase):
     def ensure_parent_path_exists(self, uri: Path):
         if not uri.parent.exists():

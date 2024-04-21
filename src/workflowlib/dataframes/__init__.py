@@ -8,6 +8,7 @@ from .transforms import (
     DataFrameSetIndex,
     DataFrameUnits,
 )
+from .writers import DataFrameWriteCSV
 
 register(DataFrameReadCSV())
 
@@ -19,3 +20,5 @@ register(DataFrameUnits())
 
 register(SelectColumns())
 register(SelectTimespan())
+
+register(DataFrameWriteCSV())

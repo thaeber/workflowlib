@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from workflowlib.process import Loader
+from workflowlib.process import Loader, Writer
 
 
 class TestLoader:
@@ -43,3 +43,30 @@ class TestLoader:
                 data_path / 'eurotherm/subfolder/d/20240118T091901.txt',
             ]
         )
+
+
+class TestWriter:
+    def test_create_path_via_ensure_path(self, tmp_path: Path):
+        filepath = tmp_path / 'dummy/ascii.csv'
+
+        # check path is not present
+        assert not filepath.parent.exists()
+
+        # create path
+        result = Writer.ensure_path(filepath)
+
+        assert result == filepath
+        assert filepath.parent.exists()
+
+    def test_calling_ensure_path_with_existing_path(self, tmp_path: Path):
+        filepath = tmp_path / 'existing/ascii.csv'
+        filepath.parent.mkdir(parents=True)
+
+        # check path is not present
+        assert filepath.parent.exists()
+
+        # calling ensure_path with existing path
+        result = Writer.ensure_path(filepath)
+
+        assert result == filepath
+        assert filepath.parent.exists()
