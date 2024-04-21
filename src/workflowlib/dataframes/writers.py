@@ -16,13 +16,17 @@ class DataFrameWriteCSV(Writer):
 
     decimal: str = '.'
     separator: str = ','
+    index: bool = False
     options: Dict[str, Any] = pydantic.Field(default_factory=dict)  # type: ignore
     date_format: str = 'ISO8601'
 
     def run(self, source: pd.DataFrame, target: FilePath | WriteBuffer, **kwargs):
         # merge process configuration with runtime keyword arguments
         options = dict(
-            sep=self.separator, decimal=self.decimal, date_format=self.date_format
+            sep=self.separator,
+            decimal=self.decimal,
+            index=self.index,
+            date_format=self.date_format,
         )
         options |= self.options
         options |= kwargs
