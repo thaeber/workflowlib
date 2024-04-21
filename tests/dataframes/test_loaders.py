@@ -119,3 +119,17 @@ class TestDataFrameReadCSV:
         assert df.loc[0, 'timestamp'] == np.datetime64('2024-04-18T12:00:01')
         assert df.loc[1, 'timestamp'] == np.datetime64('2024-04-19T12:20:01')
         assert df.loc[2, 'timestamp'] == np.datetime64('2024-04-20T12:21:01')
+
+    def test_runtime_arguments(self):
+        data = """
+            1,2024-04-18T12:00:01,3.0,b,c
+            2,2024-04-18T12:20:01,2.0,e,f
+            3,2024-04-18T12:20:01,1.0,h,i
+        """
+        stream = io.StringIO(dedent(data))
+        loader = DataFrameReadCSV(decimal='.', separator=',')
+        df = loader.run(stream, names=['idx', 'timestamp', 'A', 'B', 'C'])
+
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 3
+        assert list(df.columns) == ['idx', 'timestamp', 'A', 'B', 'C']

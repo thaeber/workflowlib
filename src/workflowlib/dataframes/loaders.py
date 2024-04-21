@@ -21,23 +21,23 @@ class DataFrameReadCSVBase(Loader):
     date_format: str = 'ISO8601'
     parse_dates: ParseDatesType = None
 
-    def run(self, source: FilePath | ReadCsvBuffer):
+    def run(self, source: FilePath | ReadCsvBuffer, **kwargs):
         if isinstance(source, FilePath):
             # load using filename (possible a glob pattern)
-            data = [self._process_single(source) for source in Loader.glob(source)]
+            data = [self._read_csv(path, **kwargs) for path in Loader.glob(source)]
             if self.concatenate:
                 data = pd.concat(data)
             return data
         else:
             # load from text buffer (e.g. file buffer or StringIO)
-            return self._process_single(source)
+            return self._read_csv(source, **kwargs)
 
-    def _process_single(self, source):
-        df = self._load(source)
+    def _read_csv(self, source: FilePath | ReadCsvBuffer, **kwargs):
+        df = self._load(source, **kwargs)
         df = self._parse_dates(df)
         return df
 
-    def _load(self, source: Path | ReadCsvBuffer) -> pd.DataFrame:
+    def _load(self, source: FilePath | ReadCsvBuffer, **kwargs) -> pd.DataFrame:
         if isinstance(source, Path):
             logger.info(f'Loading CSV data from: {source.name} ({source.parent})')
             if not source.exists():
@@ -45,9 +45,33 @@ class DataFrameReadCSVBase(Loader):
                 raise FileNotFoundError(source)
         else:
             logger.info('Reading CSV data from text buffer')
-        df = pd.read_csv(
-            source, sep=self.separator, decimal=self.decimal, **self.options
-        )
+
+        # merge process configuration with runtime keyword arguments
+        options = dict(sep=self.separator, decimal=self.decimal, **self.options)
+        options |= kwargs
+
+        # load csv data & return
+        return pd.read_csv(source, **options)
+
+    def _parse_dates(self, df: pd.DataFrame):
+        if self.parse_dates is None:
+            return df
+
+        match self.parse_dates:
+            case [*column_names]:
+                for col in column_names:
+                    df = self._parse_dates_replacing_single_column(df, col)
+            case {**nested}:
+                # loop over mappings
+                for key, column_names in nested.items():
+                    if len(column_names) == 1:
+                        name = column_names[0]
+                        df = self._parse_dates_replacing_single_column(df, name)
+                        if key != name:
+                            df.rename(columns={name: key}, inplace=True, errors='raise')
+                    else:
+                        df = self._parse_dates_joining_columns(df, key, column_names)
+
         return df
 
     def _parse_dates_joining_columns(
@@ -81,27 +105,6 @@ class DataFrameReadCSVBase(Loader):
 
         # insert new column at original index
         df.insert(index, column, dt)
-
-        return df
-
-    def _parse_dates(self, df: pd.DataFrame):
-        if self.parse_dates is None:
-            return df
-
-        match self.parse_dates:
-            case [*column_names]:
-                for col in column_names:
-                    df = self._parse_dates_replacing_single_column(df, col)
-            case {**nested}:
-                # loop over mappings
-                for key, column_names in nested.items():
-                    if len(column_names) == 1:
-                        name = column_names[0]
-                        df = self._parse_dates_replacing_single_column(df, name)
-                        if key != name:
-                            df.rename(columns={name: key}, inplace=True, errors='raise')
-                    else:
-                        df = self._parse_dates_joining_columns(df, key, column_names)
 
         return df
 
