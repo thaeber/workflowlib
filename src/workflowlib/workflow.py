@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import deque
 from typing import Any, Dict, Mapping, Optional, Sequence
 
-from .process import ProcessBase
+from . import base
 from .registry import get_runner
 
 ProcessDescriptorType = Mapping[str, Any]
@@ -15,7 +15,7 @@ def run(workflow: WorkflowDescriptorType):
 
 
 class Workflow:
-    def __init__(self, process: ProcessNode):
+    def __init__(self, process: base.ProcessNode):
         self.process = process
 
     def run(self):
@@ -34,7 +34,9 @@ class Workflow:
                 )
 
     @staticmethod
-    def _create_process(parent: Optional[ProcessNode], process: ProcessDescriptorType):
+    def _create_process(
+        parent: Optional[base.ProcessNode], process: ProcessDescriptorType
+    ):
         # create a single process node from the descriptor (mapping)
 
         # check if the process contains a `run` element
@@ -53,14 +55,14 @@ class Workflow:
             for key, value in process['params'].items():
                 if key.startswith('$'):
                     # value itself is a process
-                    params[key[1:]] = RunnableProcessParam(
+                    params[key[1:]] = base.RunnableProcessParam(
                         Workflow.create(value).process
                     )
                 else:
-                    params[key] = PlainProcessParam(value)
+                    params[key] = base.PlainProcessParam(value)
 
         # invoke process
-        return ProcessNode(parent, runner, params)
+        return base.ProcessNode(parent, runner, params)
 
     @staticmethod
     def _create_sequence(sequence: Sequence[ProcessDescriptorType]):
@@ -74,60 +76,3 @@ class Workflow:
         while seq:
             process = Workflow._create_process(process, seq.popleft())
         return process
-
-
-class ProcessNode:
-    def __init__(
-        self,
-        parent: Optional[ProcessNode],
-        runner: ProcessBase,
-        params: Dict[str, ProcessParam],
-    ):
-        self.parent = parent
-        self.runner = runner
-        self.params = params
-
-    def run(self):
-        # pre-processing
-        arg = self.runner.preprocess()
-
-        # if pre-processing yields a result, we will return that
-        # (useful, e.g. for caching)
-        if arg is not None:
-            return arg
-
-        # resolve parameters;
-        # Each parameter, which itself represents an executable node, is
-        # evaluated before the process of the current node instance is executed.
-        params = {key: item.get_value() for key, item in self.params.items()}
-
-        if self.parent is not None:
-            # call parent node
-            arg = self.parent.run()
-
-            # pass result from parent node to current process
-            return self.runner.run(arg, **params)
-        else:
-            # there is parent (first process in chain); just run the process
-            return self.runner.run(**params)
-
-
-class ProcessParam:
-    def get_value(self):
-        raise NotImplementedError()
-
-
-class PlainProcessParam(ProcessParam):
-    def __init__(self, value: Any):
-        self.value = value
-
-    def get_value(self):
-        return self.value
-
-
-class RunnableProcessParam:
-    def __init__(self, node: ProcessNode):
-        self.node = node
-
-    def get_value(self):
-        return self.node.run()

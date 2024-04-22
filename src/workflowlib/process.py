@@ -1,30 +1,7 @@
-import abc
 import os
 from pathlib import Path
-from typing import Any
 
-import pydantic
-
-
-class ProcessBase(pydantic.BaseModel, abc.ABC):
-    name: str
-    version: str
-
-    def updated(self, **config):
-        _config = self.model_dump(exclude_defaults=True)
-        _config.update(config)
-        return self.model_validate(_config)
-
-    @abc.abstractmethod
-    def run(self, *args, **kwargs) -> Any:
-        pass
-
-    def preprocess(self):
-        return None
-
-    @property
-    def fullname(self):
-        return f'{self.name}@v{self.version}'
+from workflowlib.base import ProcessBase
 
 
 class Loader(ProcessBase):
