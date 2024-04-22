@@ -1,7 +1,8 @@
+import abc
 import os
 from pathlib import Path
 
-from workflowlib.base import ProcessBase
+from workflowlib.base import ProcessBase, ProcessNode
 
 
 class Loader(ProcessBase):
@@ -64,4 +65,35 @@ class Transform(ProcessBase):
     pass
 
 
-# %%
+class Cache(ProcessBase):
+
+    def run(self, source, **kwargs):
+        # write source to cache
+        self.write(source, **kwargs)
+
+        # return source unaltered
+        return source
+
+    def _run(self, node: ProcessNode):
+        # get parameters
+        params = node.get_params()
+
+        # check if cache is valid
+        if self.cache_is_valid(**params):
+            # return cached value
+            return self.read(**params)
+        else:
+            # run process normally (and save value to cache)
+            return super()._run(node)
+
+    @abc.abstractmethod
+    def read(self, **kwargs):
+        pass
+
+    @abc.abstractmethod
+    def write(self, source, **kwargs):
+        pass
+
+    @abc.abstractmethod
+    def cache_is_valid(self, **kwargs):
+        pass

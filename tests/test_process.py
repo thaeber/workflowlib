@@ -1,6 +1,8 @@
 from pathlib import Path
+from typing import Any, ClassVar
 
-from workflowlib.process import Loader, Writer
+from workflowlib.base import ProcessBase, ProcessNode
+from workflowlib.process import Cache, Loader, Writer
 
 
 class TestLoader:
@@ -70,3 +72,97 @@ class TestWriter:
 
         assert result == filepath
         assert filepath.parent.exists()
+
+
+class TestCache:
+
+    def test_logic_cache_is_valid(self):
+
+        class MySource(ProcessBase):
+            name: str = 'my_source'
+            version: str = '1'
+            counter: ClassVar[int] = 1
+
+            def run(self, **kwargs) -> Any:
+                return MySource.counter
+
+        class MyCache(Cache):
+            name: str = 'my_cache'
+            version: str = '1'
+            cached: ClassVar[None | int] = None
+
+            def cache_is_valid(self):
+                return MyCache.cached is not None
+
+            def write(self, source: int):
+                MyCache.cached = source
+
+            def read(self):
+                return MyCache.cached
+
+        workflow = ProcessNode(
+            ProcessNode(None, MySource(), {}),
+            MyCache(),
+            {},
+        )
+
+        # 1st run
+        assert MyCache.cached == None
+        assert workflow.run() == 1
+
+        # 2nd run
+        MySource.counter = 2  # force update of source
+        assert workflow.run() == 1
+        assert MySource.counter == 2
+        assert MyCache.cached == 1
+
+        # 3rd run
+        MySource.counter = 3  # force update of source
+        assert workflow.run() == 1
+        assert MySource.counter == 3
+        assert MyCache.cached == 1
+
+    def test_logic_cache_is_not_valid(self):
+
+        class MySource(ProcessBase):
+            name: str = 'my_source'
+            version: str = '1'
+            counter: ClassVar[int] = 0
+
+            def run(self, **kwargs) -> Any:
+                MySource.counter += 1
+                return MySource.counter
+
+        class MyCache(Cache):
+            name: str = 'my_cache'
+            version: str = '1'
+            cached: ClassVar[None | int] = None
+
+            def cache_is_valid(self):
+                return False
+
+            def write(self, source: int):
+                MyCache.cached = source
+
+            def read(self):
+                return MyCache.cached
+
+        workflow = ProcessNode(
+            ProcessNode(None, MySource(), {}),
+            MyCache(),
+            {},
+        )
+
+        # 1st run
+        assert MyCache.cached == None
+        assert workflow.run() == 1
+
+        # 2nd run
+        assert workflow.run() == 2
+        assert MySource.counter == 2
+        assert MyCache.cached == 2
+
+        # 3rd run
+        assert workflow.run() == 3
+        assert MySource.counter == 3
+        assert MyCache.cached == 3

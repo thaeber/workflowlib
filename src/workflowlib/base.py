@@ -16,23 +16,23 @@ class ProcessBase(pydantic.BaseModel, abc.ABC):
         return self.model_validate(_config)
 
     @abc.abstractmethod
-    def run(self, *args, **kwargs) -> Any:
+    def run(self, source, **kwargs) -> Any:
         pass
 
     def _run(self, node: ProcessNode):
-        args = []
-        if node.parent is not None:
-            # run parent process
-            result = node.parent.run()
-            args.append(result)
-
         # resolve parameters;
         # each parameter, which itself represents an executable node, is
         # evaluated before the process of the current node instance is executed.
         params = node.get_params()
 
-        # run process & return result
-        return self.run(*args, **params)
+        if node.parent is not None:
+            # run parent process
+            source = node.parent.run()
+
+            # run process & return result
+            return self.run(source, **params)
+        else:
+            return self.run(**params)
 
     def preprocess(self):
         return None
@@ -56,8 +56,14 @@ class ProcessNode:
     def run(self):
         return self.runner._run(self)
 
-    def get_param(self, key: str):
-        return self.params[key].get_value()
+    def get_param(self, key: str, default=None):
+        if default is None:
+            return self.params[key].get_value()
+        else:
+            if key in self.params:
+                return self.params[key].get_value()
+            else:
+                return default
 
     def get_params(self):
         # resolve parameters;
