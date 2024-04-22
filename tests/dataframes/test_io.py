@@ -183,9 +183,9 @@ class TestDataFrameWriteCSV:
                 A=[1.1, 2.2, 3.3],
                 B=['aa', 'bb', 'cc'],
                 C=[
-                    '2024-01-16T10:05:28.537',
-                    '2024-01-16T10:05:29.735',
-                    '2024-01-16T10:05:30.935',
+                    np.datetime64('2024-01-16T10:05:28.537'),
+                    np.datetime64('2024-01-16T10:05:29.735'),
+                    np.datetime64('2024-01-16T10:05:30.935'),
                 ],
             )
         )
@@ -195,11 +195,17 @@ class TestDataFrameWriteCSV:
         writer.run(df, path)
         assert path.exists()
 
-        reader = DataFrameReadCSV()
-        df2 = reader.run(path)
+        df2 = pd.read_csv(path, sep=',', decimal='.', parse_dates=False)
 
         assert all(df.columns == df2.columns)
-        assert all(df == df2)
+
+        # datetime should have been saved in ISO8601 format
+        assert list(df2.C) == [
+            '2024-01-16T10:05:28.537000',
+            '2024-01-16T10:05:29.735000',
+            '2024-01-16T10:05:30.935000',
+        ]
+        assert (df == df2).values.all()
 
 
 class TestDataFrameCSVCache:
@@ -244,7 +250,7 @@ class TestDataFrameCSVCache:
 
         # check written data
         df3 = pd.read_hdf(path)
-        assert all(df == df3)
+        assert (df == df3).values.all()
 
     def test_read_from_cache(self, tmp_path):
         path = tmp_path / 'cache.hd5'
@@ -273,7 +279,7 @@ class TestDataFrameCSVCache:
         assert df is not cached
 
         # check data integrity
-        assert all(df == cached)
+        assert (df == cached).values.all()
 
     def test_rebuild_cache(self, tmp_path):
         path = tmp_path / 'cache.hd5'
@@ -306,7 +312,7 @@ class TestDataFrameCSVCache:
         assert df is cached
 
         # check data integrity
-        assert all(df == cached)
+        assert (df == cached).values.all()
 
     def test_dataframe_with_index(self, tmp_path):
         path = tmp_path / 'cache.csv'
@@ -345,7 +351,7 @@ class TestDataFrameCSVCache:
         assert df is not cached
 
         # check data integrity
-        assert all(df2 == cached)
+        assert (df2 == cached).values.all()
 
     def test_dataframe_with_datetime_index(self, tmp_path):
         path = tmp_path / 'cache.csv'
@@ -384,4 +390,4 @@ class TestDataFrameCSVCache:
         assert df is not cached
 
         # check data integrity
-        assert all(df2 == cached)
+        assert (df2 == cached).values.all()

@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 import pydantic
@@ -122,7 +122,7 @@ class DataFrameWriteCSV(Writer):
     separator: str = ','
     index: bool = False
     options: Dict[str, Any] = pydantic.Field(default_factory=dict)  # type: ignore
-    date_format: str = 'ISO8601'
+    date_format: Optional[str] = r'%Y-%m-%dT%H:%M:%S.%f'
 
     def run(
         self,
