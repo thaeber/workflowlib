@@ -5,8 +5,8 @@ from typing import Any, Dict, List
 import pandas as pd
 import pydantic
 
-from .._typing import FilePath, ReadCsvBuffer
-from ..process import Loader
+from .._typing import FilePath, ReadCsvBuffer, WriteBuffer
+from ..process import Cache, Loader, Writer
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ class DataFrameReadCSVBase(Loader):
         options |= kwargs
 
         # load csv data & return
-        return pd.read_csv(source, **options)
+        return pd.read_csv(source, **options)  # type: ignore
 
     def _parse_dates(self, df: pd.DataFrame):
         if self.parse_dates is None:
@@ -112,3 +112,37 @@ class DataFrameReadCSVBase(Loader):
 class DataFrameReadCSV(DataFrameReadCSVBase):
     version: str = '1'
     name: str = 'dataframe.read_csv'
+
+
+class DataFrameWriteCSV(Writer):
+    name: str = 'dataframe.write_csv'
+    version: str = '1'
+
+    decimal: str = '.'
+    separator: str = ','
+    index: bool = False
+    options: Dict[str, Any] = pydantic.Field(default_factory=dict)  # type: ignore
+    date_format: str = 'ISO8601'
+
+    def run(
+        self,
+        source: pd.DataFrame,
+        target: FilePath | WriteBuffer[str] | WriteBuffer[bytes],
+        **kwargs,
+    ):
+        # merge process configuration with runtime keyword arguments
+        options = dict(
+            sep=self.separator,
+            decimal=self.decimal,
+            index=self.index,
+            date_format=self.date_format,
+        )
+        options |= self.options
+        options |= kwargs
+
+        # create paths if necessary
+        if isinstance(target, FilePath):
+            target = self.ensure_path(target)
+
+        # write data to csv
+        source.to_csv(target, **options)  # type: ignore

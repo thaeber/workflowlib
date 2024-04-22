@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 
-from ..dataframes.loaders import DataFrameReadCSVBase, ParseDatesType
+from ..dataframes.io import DataFrameReadCSVBase, ParseDatesType
 
 
 class MksFTIRLoader(DataFrameReadCSVBase):

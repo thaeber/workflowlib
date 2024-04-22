@@ -29,8 +29,8 @@ class Loader(ProcessBase):
 
 
 class Writer(ProcessBase):
-    @staticmethod
-    def ensure_path(filepath: str | os.PathLike):
+    @classmethod
+    def ensure_path(cls, filepath: str | os.PathLike):
         """Ensures that the parent path of the given file exists.
         Creates the path if it does not exists.
 

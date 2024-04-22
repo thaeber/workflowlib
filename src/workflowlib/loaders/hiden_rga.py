@@ -3,7 +3,7 @@ from datetime import datetime
 
 import pandas as pd
 
-from ..dataframes.loaders import DataFrameReadCSVBase
+from ..dataframes.io import DataFrameReadCSVBase
 
 
 class HidenRGALoader(DataFrameReadCSVBase):

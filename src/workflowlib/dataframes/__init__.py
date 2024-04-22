@@ -1,5 +1,5 @@
 from ..registry import register
-from .loaders import DataFrameReadCSV
+from .io import DataFrameReadCSV, DataFrameWriteCSV
 from .selection import SelectColumns, SelectTimespan
 from .transforms import (
     DataFrameFillNA,
@@ -8,7 +8,6 @@ from .transforms import (
     DataFrameSetIndex,
     DataFrameUnits,
 )
-from .writers import DataFrameWriteCSV
 
 register(DataFrameReadCSV())
 

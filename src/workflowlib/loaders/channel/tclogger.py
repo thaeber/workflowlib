@@ -1,7 +1,7 @@
 from typing import Any, Dict, List
 
 
-from ...dataframes.loaders import DataFrameReadCSVBase, ParseDatesType
+from ...dataframes.io import DataFrameReadCSVBase, ParseDatesType
 
 
 class ChannelTCLoggerLoader(DataFrameReadCSVBase):
