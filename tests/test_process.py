@@ -2,7 +2,25 @@ from pathlib import Path
 from typing import Any, ClassVar
 
 from workflowlib.base import ProcessBase, ProcessNode
-from workflowlib.process import Cache, Loader, Writer
+from workflowlib.process import Cache, Loader, Writer, DelegatedSource
+
+
+class TestDelegatedSource:
+    def test_create(self):
+        source = DelegatedSource(delegate=lambda: 'test')
+
+        assert source.name == 'delegated.source'
+        assert source.version == '1'
+        assert source.delegate is not None
+
+    def test_evaluate_delegate(self):
+        counter = 1
+        source = DelegatedSource(delegate=lambda: counter)
+
+        assert source.run() == 1
+
+        counter = 2
+        assert source.run() == 2
 
 
 class TestLoader:

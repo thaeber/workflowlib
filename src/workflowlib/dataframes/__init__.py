@@ -1,5 +1,5 @@
 from ..registry import register
-from .io import DataFrameReadCSV, DataFrameWriteCSV
+from .io import DataFrameFileCache, DataFrameReadCSV, DataFrameWriteCSV
 from .selection import SelectColumns, SelectTimespan
 from .transforms import (
     DataFrameFillNA,
@@ -10,6 +10,8 @@ from .transforms import (
 )
 
 register(DataFrameReadCSV())
+register(DataFrameWriteCSV())
+register(DataFrameFileCache())
 
 register(DataFrameFillNA())
 register(DataFrameInterpolate())
@@ -19,5 +21,3 @@ register(DataFrameUnits())
 
 register(SelectColumns())
 register(SelectTimespan())
-
-register(DataFrameWriteCSV())

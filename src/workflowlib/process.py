@@ -1,8 +1,18 @@
 import abc
 import os
 from pathlib import Path
+from typing import Any, Callable
 
 from workflowlib.base import ProcessBase, ProcessNode
+
+
+class DelegatedSource(ProcessBase):
+    name: str = 'delegated.source'
+    version: str = '1'
+    delegate: Callable[[], Any]
+
+    def run(self):
+        return self.delegate()
 
 
 class Loader(ProcessBase):

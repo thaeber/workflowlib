@@ -146,3 +146,25 @@ class DataFrameWriteCSV(Writer):
 
         # write data to csv
         source.to_csv(target, **options)  # type: ignore
+
+
+class DataFrameFileCache(Cache):
+    name: str = 'dataframe.cache.csv'
+    version: str = '1'
+
+    def read(self, filename: FilePath, rebuild: bool = False, **kwargs):
+        # reader = DataFrameReadCSV()
+        # return reader.run(filename)
+        return pd.read_hdf(filename, key='data')
+
+    def write(
+        self, source: pd.DataFrame, filename: FilePath, rebuild: bool = False, **kwargs
+    ):
+        # writer = DataFrameWriteCSV()
+        # writer.run(source, filename)
+        source.to_hdf(filename, key='data')
+
+    def cache_is_valid(self, filename: FilePath, rebuild: bool = False):
+        if rebuild:
+            return False
+        return Path(filename).exists()
