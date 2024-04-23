@@ -25,7 +25,7 @@ def test_run_sequence(data_path):
             },
         },
         {
-            'run': 'select.columns@v1',
+            'run': 'dataframe.select.columns@v1',
             'params': {
                 'select': {
                     "timestamp": "timestamp",
@@ -67,7 +67,7 @@ class TestWorkflow:
                 },
             },
             {
-                'run': 'select.timespan@v1',
+                'run': 'dataframe.select.timespan@v1',
                 'params': {
                     'column': 'timestamp',
                     'start': '2024-01-16T10:05:22.5',
@@ -75,7 +75,7 @@ class TestWorkflow:
                 },
             },
             {
-                'run': 'select.columns@v1',
+                'run': 'dataframe.select.columns@v1',
                 'params': {
                     'select': {
                         "timestamp": "timestamp",
@@ -109,7 +109,7 @@ class TestWorkflow:
                 },
             },
             {
-                'run': 'select.columns@v1',
+                'run': 'dataframe.select.columns@v1',
                 'params': {
                     'select': {
                         "timestamp": "timestamp",
@@ -143,7 +143,7 @@ class TestWorkflow:
                             },
                         },
                         {
-                            'run': 'select.columns@v1',
+                            'run': 'dataframe.select.columns@v1',
                             'params': {
                                 'select': {
                                     "timestamp": "timestamp",

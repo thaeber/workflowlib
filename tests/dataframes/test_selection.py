@@ -11,7 +11,7 @@ class TestSelectColumns:
     def test_create_loader(self):
         transform = SelectColumns()
 
-        assert transform.name == 'select.columns'
+        assert transform.name == 'dataframe.select.columns'
         assert transform.version == '1'
 
     def test_select_single(self, data_path: Path):
@@ -70,7 +70,7 @@ class TestSelectTimespan:
     def test_create_loader(self):
         loader = SelectTimespan()
 
-        assert loader.name == 'select.timespan'
+        assert loader.name == 'dataframe.select.timespan'
         assert loader.version == '1'
 
     def test_process(self, data_path: Path):
