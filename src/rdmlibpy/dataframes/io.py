@@ -115,11 +115,11 @@ class DataFrameReadCSVBase(Loader):
 
 class DataFrameReadCSV(DataFrameReadCSVBase):
     version: str = '1'
-    name: str = 'dataframe.read_csv'
+    name: str = 'dataframe.read.csv'
 
 
 class DataFrameWriteCSV(Writer):
-    name: str = 'dataframe.write_csv'
+    name: str = 'dataframe.write.csv'
     version: str = '1'
 
     decimal: str = '.'

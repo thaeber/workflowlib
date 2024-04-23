@@ -15,7 +15,7 @@ class TestDataFrameReadCSV:
     def test_create_loader(self):
         loader = DataFrameReadCSV()
 
-        assert loader.name == 'dataframe.read_csv'
+        assert loader.name == 'dataframe.read.csv'
         assert loader.version == '1'
         assert loader.decimal == '.'
         assert loader.separator == ','
@@ -143,7 +143,7 @@ class TestDataFrameWriteCSV:
     def test_create_loader(self):
         writer = DataFrameWriteCSV()
 
-        assert writer.name == 'dataframe.write_csv'
+        assert writer.name == 'dataframe.write.csv'
         assert writer.version == '1'
         assert writer.decimal == '.'
         assert writer.separator == ','
