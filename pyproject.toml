@@ -61,5 +61,5 @@ convention = "angular"
 in-place = false
 output = "changelog.md"
 provider = "github"
-sections = "fix,feat,refactor,chore,style"
+sections = "fix,feat,refactor,chore,style,build"
 template = "angular"

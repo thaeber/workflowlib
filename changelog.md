@@ -3,9 +3,17 @@
 
 ## [v0.1.6](https://github.com/thaeber/workflowlib/compare/v0.1.5...v0.1.6) (2024-04-23)
 
+### Chore
+
+- Updated changelog ([b5ee656](https://github.com/thaeber/workflowlib/commit/b5ee6565c08dad644a411d8430320b0e951b40e9))
+
 ### Style
 
 - Renamed project to "rdmlibpy" (#5) ([df40fa7](https://github.com/thaeber/workflowlib/commit/df40fa7494207692f01020649cc91599325adba8))
+
+### Build
+
+- Fixed invalid filename in bump-my-version config ([fc5a965](https://github.com/thaeber/workflowlib/commit/fc5a965e7c8a2960879a8807e8b4ba8cc37d5c30))
 
 <a name="v0.1.5"></a>
 
