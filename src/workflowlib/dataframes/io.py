@@ -2,7 +2,11 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import numpy as np
 import pandas as pd
+import pandas.arrays
+import pint_pandas
+import pint_pandas.pint_array
 import pydantic
 
 from .._typing import FilePath, ReadCsvBuffer, WriteBuffer
@@ -123,11 +127,13 @@ class DataFrameWriteCSV(Writer):
     index: bool = False
     options: Dict[str, Any] = pydantic.Field(default_factory=dict)  # type: ignore
     date_format: Optional[str] = r'%Y-%m-%dT%H:%M:%S.%f'
+    dequantify: bool = False
 
     def run(
         self,
         source: pd.DataFrame,
         target: FilePath | WriteBuffer[str] | WriteBuffer[bytes],
+        dequantify: bool = False,
         **kwargs,
     ):
         # merge process configuration with runtime keyword arguments
@@ -144,6 +150,10 @@ class DataFrameWriteCSV(Writer):
         if isinstance(target, FilePath):
             target = self.ensure_path(target)
 
+        # promote units to multi-index header
+        if dequantify or (dequantify and self.dequantify):
+            source = source.pint.dequantify()
+
         # write data to csv
         source.to_csv(target, **options)  # type: ignore
 
@@ -153,18 +163,61 @@ class DataFrameFileCache(Cache):
     version: str = '1'
 
     def read(self, filename: FilePath, rebuild: bool = False, **kwargs):
-        # reader = DataFrameReadCSV()
-        # return reader.run(filename)
-        return pd.read_hdf(filename, key='data')
+        # load data from HDF5 file
+        cached = pd.read_hdf(filename, key='data')
+
+        # convert units back to PintArrays
+        # cached = cached.pint.quantify(level=-1)
+
+        # temporary fix until https://github.com/hgrecco/pint-pandas/pull/217
+        # is released
+        cached = quantify(cached, level=-1)
+
+        # return cached data
+        return cached
 
     def write(
         self, source: pd.DataFrame, filename: FilePath, rebuild: bool = False, **kwargs
     ):
-        # writer = DataFrameWriteCSV()
-        # writer.run(source, filename)
+        # promote units to multi-index
+        source = source.pint.dequantify()
+
+        # get around some HDF5 restrictions, which can't handle FloatingArray data
+        # used by pint
+        for i, col in enumerate(source.columns):
+            if isinstance(source.iloc[:, i].values, pandas.arrays.FloatingArray):  # type: ignore
+                source[col] = np.array(source[col])
+
+        # write data to HDF5 file
         source.to_hdf(filename, key='data')
 
     def cache_is_valid(self, filename: FilePath, rebuild: bool = False):
         if rebuild:
             return False
         return Path(filename).exists()
+
+
+def quantify(df, level=-1):
+    # Fix for https://github.com/hgrecco/pint-pandas/pull/217
+    # (remove once that fix is rolled out in the next release of
+    # pint-pandas)
+    df_columns = df.columns.to_frame()
+    unit_col_name = df_columns.columns[level]
+    units = df_columns[unit_col_name]
+    df_columns = df_columns.drop(columns=unit_col_name)
+
+    df_new = pd.DataFrame(
+        {
+            i: (
+                pint_pandas.PintArray(df.iloc[:, i], unit)
+                if unit != pint_pandas.pint_array.NO_UNIT
+                else df.iloc[:, i]
+            )
+            for i, unit in enumerate(units.values)
+        }
+    )
+
+    df_new.columns = df_columns.index.droplevel(unit_col_name)
+    df_new.index = df.index
+
+    return df_new

@@ -4,6 +4,7 @@ from textwrap import dedent
 
 import numpy as np
 import pandas as pd
+import pint_pandas
 
 from workflowlib.base import PlainProcessParam, ProcessNode
 from workflowlib.dataframes import (
@@ -207,6 +208,47 @@ class TestDataFrameWriteCSV:
         ]
         assert (df == df2).values.all()
 
+    def test_write_with_units(self, tmp_path: Path):
+        # check a successful write/read with default settings
+        df = pd.DataFrame(
+            data=dict(
+                A=[1.1, 2.2, 3.3],
+                B=['aa', 'bb', 'cc'],
+                C=[
+                    np.datetime64('2024-01-16T10:05:28.537'),
+                    np.datetime64('2024-01-16T10:05:29.735'),
+                    np.datetime64('2024-01-16T10:05:30.935'),
+                ],
+            )
+        )
+        df['E'] = pint_pandas.PintArray([1.0, 2.0, 3.0], dtype='pint[m]')
+        path = tmp_path / 'data.csv'
+
+        writer = DataFrameWriteCSV()
+        writer.run(df, path, dequantify=True)
+        assert path.exists()
+
+        # load data from written file
+        df2 = pd.read_csv(
+            path,
+            sep=',',
+            decimal='.',
+            parse_dates=[2],
+            date_format='ISO8601',
+            header=[0, 1],
+        )
+        df2 = df2.pint.quantify(level=-1)
+        for col in df2.columns:
+            try:
+                if df2[col].dtype == 'object':
+                    df2[col] = pd.to_numeric(df2[col])
+            except ValueError:
+                pass
+
+        assert list(df.columns) == list(df2.columns)
+        assert (df == df2).values.all()
+        assert list(df.dtypes) == list(df2.dtypes)
+
 
 class TestDataFrameCSVCache:
 
@@ -249,7 +291,7 @@ class TestDataFrameCSVCache:
         assert path.exists()
 
         # check written data
-        df3 = pd.read_hdf(path)
+        df3 = pd.read_hdf(path).pint.quantify(level=-1)
         assert (df == df3).values.all()
 
     def test_read_from_cache(self, tmp_path):
@@ -265,7 +307,7 @@ class TestDataFrameCSVCache:
                 ],
             )
         )
-        df.to_hdf(path, key='data')
+        df.pint.dequantify().to_hdf(path, key='data')
 
         workflow = ProcessNode(
             ProcessNode(None, DelegatedSource(delegate=lambda: df), {}),
@@ -391,3 +433,44 @@ class TestDataFrameCSVCache:
 
         # check data integrity
         assert (df2 == cached).values.all()
+
+    def test_dataframe_with_units(self, tmp_path):
+        path = tmp_path / 'cache.csv'
+        df = pd.DataFrame(
+            data=dict(
+                A=[1.1, 2.2, 3.3],
+                B=['aa', 'bb', 'cc'],
+                C=[
+                    np.datetime64('2024-01-16T10:05:28.537'),
+                    np.datetime64('2024-01-16T10:05:29.735'),
+                    np.datetime64('2024-01-16T10:05:30.935'),
+                ],
+                D=['R1', 'R2', 'R3'],
+            ),
+        )
+        df['E'] = pint_pandas.PintArray([1.0, 2.0, 3.0], dtype='pint[m]')
+        original = df.copy(deep=True)
+
+        workflow = ProcessNode(
+            ProcessNode(None, DelegatedSource(delegate=lambda: df), {}),
+            DataFrameFileCache(),
+            {
+                'filename': PlainProcessParam(str(path)),
+            },
+        )
+
+        # create cache
+        assert not path.exists()
+        cached = workflow.run()
+
+        # modify dataframe and load from cache
+        df['E'] = [1, 2, 3]
+        cached = workflow.run()
+
+        # check returned data is a different object instance
+        assert df is not cached
+
+        # check data integrity
+        assert list(original.columns) == list(cached.columns)
+        assert list(original.dtypes) == list(cached.dtypes)
+        assert (original == cached).values.all()
