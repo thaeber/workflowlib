@@ -1,5 +1,5 @@
 # set package version
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 
 import pint_pandas
 
