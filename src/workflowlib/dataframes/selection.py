@@ -7,7 +7,7 @@ from ..process import Transform
 
 
 class SelectColumns(Transform):
-    name: str = 'select.columns'
+    name: str = 'dataframe.select.columns'
     version: str = '1'
 
     def run(
@@ -26,7 +26,7 @@ class SelectColumns(Transform):
 
 
 class SelectTimespan(Transform):
-    name: str = 'select.timespan'
+    name: str = 'dataframe.select.timespan'
     version: str = '1'
 
     def run(self, source: pd.DataFrame, column: str, start=None, stop=None):
