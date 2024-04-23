@@ -100,6 +100,52 @@ class TestWorkflow:
         assert len(df) == 5
         assert len(df.columns) == 7
 
+    def test_sequence_of_sequence(self, data_path):
+        descriptor = [
+            [
+                {
+                    'run': 'mks.ftir@v1',
+                    'params': {
+                        'source': str(data_path / 'mks_ftir/2024-01-16-conc.prn'),
+                    },
+                },
+                [
+                    {
+                        'run': 'dataframe.select.timespan@v1',
+                        'params': {
+                            'column': 'timestamp',
+                            'start': '2024-01-16T10:05:22.5',
+                            'stop': '2024-01-16T10:05:27.5',
+                        },
+                    }
+                ],
+            ],
+            {
+                'run': 'dataframe.select.columns@v1',
+                'params': {
+                    'select': {
+                        "timestamp": "timestamp",
+                        "NH3 (3000) 191C (2of2)": "NH3",
+                        "N2O (100,200,300) 191C (1of2)": "N2O",
+                        "NO (350,3000) 191C": "NO",
+                        "NO2 (2000) 191C (2of2)": "NO2",
+                        "NO2 (150) 191C (1of2)": "NO2b",
+                        "H2O% (25) 191C": "H2O",
+                    }
+                },
+            },
+        ]
+
+        # create workflow
+        workflow = Workflow.create(descriptor)
+        assert isinstance(workflow, Workflow)
+
+        # run workflow
+        df = workflow.run()
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 5
+        assert len(df.columns) == 7
+
     def test_workflow_with_process_params(self, data_path):
         descriptor = [
             {
