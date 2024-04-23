@@ -162,7 +162,7 @@ class DataFrameWriteCSV(Writer):
 
 
 class DataFrameFileCache(Cache):
-    name: str = 'dataframe.cache.csv'
+    name: str = 'dataframe.cache'
     version: str = '1'
 
     def read(self, filename: FilePath, rebuild: bool = False, **kwargs):
