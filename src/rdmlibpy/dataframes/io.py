@@ -132,7 +132,7 @@ class DataFrameWriteCSV(Writer):
     def run(
         self,
         source: pd.DataFrame,
-        target: FilePath | WriteBuffer[str] | WriteBuffer[bytes],
+        filename: FilePath | WriteBuffer[str] | WriteBuffer[bytes],
         dequantify: bool = False,
         **kwargs,
     ):
@@ -147,15 +147,15 @@ class DataFrameWriteCSV(Writer):
         options |= kwargs
 
         # create paths if necessary
-        if isinstance(target, FilePath):
-            target = self.ensure_path(target)
+        if isinstance(filename, FilePath):
+            filename = self.ensure_path(filename)
 
         # promote units to multi-index header
         if dequantify or (dequantify and self.dequantify):
             source = source.pint.dequantify()
 
         # write data to csv
-        source.to_csv(target, **options)  # type: ignore
+        source.to_csv(filename, **options)  # type: ignore
 
         # return unaltered data
         return source
