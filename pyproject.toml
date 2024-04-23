@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rdmlibpy"
-version = "0.1.5"
+version = "0.1.6"
 description = ""
 authors = ["thaeber <thomas.haeber@kit.edu>"]
 readme = "README.md"
@@ -54,7 +54,7 @@ search = '''^version\s*=\s*([\'\"\`])({current_version})\1'''
 replace = 'version = "{new_version}"'
 
 [[tool.bumpversion.files]]
-filename = "src/workflowlib/__init__.py"
+filename = "src/rdmlibpy/__init__.py"
 
 [tool.git-changelog]
 convention = "angular"
