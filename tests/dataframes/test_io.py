@@ -7,11 +7,7 @@ import pandas as pd
 import pint_pandas
 
 from rdmlibpy.base import PlainProcessParam, ProcessNode
-from rdmlibpy.dataframes import (
-    DataFrameFileCache,
-    DataFrameReadCSV,
-    DataFrameWriteCSV,
-)
+from rdmlibpy.dataframes import DataFrameFileCache, DataFrameReadCSV, DataFrameWriteCSV
 from rdmlibpy.process import DelegatedSource
 
 
@@ -152,6 +148,16 @@ class TestDataFrameWriteCSV:
         assert writer.decimal == '.'
         assert writer.separator == ','
         assert writer.index == False
+
+    def test_returns_data(self, tmp_path: Path):
+        df = pd.DataFrame(data=dict(A=[1.1, 2.2, 3.3], B=['aa', 'bb', 'cc']))
+        path = tmp_path / 'data.csv'
+
+        serializer = DataFrameWriteCSV(separator=';')
+        df2 = serializer.run(df, path)
+
+        # make sure input data is returned unaltered
+        assert df2 is df
 
     def test_write_csv(self, tmp_path: Path):
         df = pd.DataFrame(data=dict(A=[1.1, 2.2, 3.3], B=['aa', 'bb', 'cc']))
