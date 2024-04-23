@@ -261,7 +261,7 @@ class TestDataFrameCSVCache:
     def test_create(self):
         cache = DataFrameFileCache()
 
-        assert cache.name == 'dataframe.cache.csv'
+        assert cache.name == 'dataframe.cache'
         assert cache.version == '1'
 
     def test_write_to_cache(self, tmp_path):
