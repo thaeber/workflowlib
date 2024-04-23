@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from workflowlib.loaders import ChannelEurothermLoggerLoader
+from rdmlibpy.loaders import ChannelEurothermLoggerLoader
 
 
 class TestChannelEurothermLoggerLoader:

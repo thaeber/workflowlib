@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from workflowlib.loaders import MksFTIRLoader
+from rdmlibpy.loaders import MksFTIRLoader
 
 
 class TestMksFTIRLoader:

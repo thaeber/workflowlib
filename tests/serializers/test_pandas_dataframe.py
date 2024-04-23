@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from workflowlib.serializers import PandasDataFrameSerializer
+from rdmlibpy.serializers import PandasDataFrameSerializer
 
 
 class TestPandasDataFrameSerializer:

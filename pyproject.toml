@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "workflowlib"
+name = "rdmlibpy"
 version = "0.1.5"
 description = ""
 authors = ["thaeber <thomas.haeber@kit.edu>"]
 readme = "README.md"
 packages = [
-    { include = "workflowlib", from = "src" },
+    { include = "rdmlibpy", from = "src" },
 ]
 
 
