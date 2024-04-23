@@ -1,32 +1,18 @@
-import io
+import abc
 import os
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Callable
 
-import pydantic
+from workflowlib.base import ProcessBase, ProcessNode
 
 
-class ProcessBase(pydantic.BaseModel):
-    name: str
-    version: str
+class DelegatedSource(ProcessBase):
+    name: str = 'delegated.source'
+    version: str = '1'
+    delegate: Callable[[], Any]
 
-    def updated(self, **config):
-        _config = self.model_dump(exclude_defaults=True)
-        _config.update(config)
-        return self.model_validate(_config)
-
-    def run(self, *args, **kwargs) -> Any:
-        if len(args) == 1:
-            return args[0]
-        else:
-            return (*args,)
-
-    def preprocess(self):
-        return None
-
-    @property
-    def fullname(self):
-        return f'{self.name}@v{self.version}'
+    def run(self):
+        return self.delegate()
 
 
 class Loader(ProcessBase):
@@ -52,6 +38,26 @@ class Loader(ProcessBase):
             yield src
 
 
+class Writer(ProcessBase):
+    @classmethod
+    def ensure_path(cls, filepath: str | os.PathLike):
+        """Ensures that the parent path of the given file exists.
+        Creates the path if it does not exists.
+
+        Args:
+            filepath (str | os.PathLike): The path and filename to the file.
+
+        Returns:
+            Path: The original filepath wrapped in a `Path`instance.
+        """
+        path = Path(filepath)
+
+        if not path.parent.exists():
+            path.parent.mkdir(parents=True, exist_ok=True)
+
+        return path
+
+
 class Serializer(ProcessBase):
     def ensure_parent_path_exists(self, uri: Path):
         if not uri.parent.exists():
@@ -69,4 +75,35 @@ class Transform(ProcessBase):
     pass
 
 
-# %%
+class Cache(ProcessBase):
+
+    def run(self, source, **kwargs):
+        # write source to cache
+        self.write(source, **kwargs)
+
+        # return source unaltered
+        return source
+
+    def _run(self, node: ProcessNode):
+        # get parameters
+        params = node.get_params()
+
+        # check if cache is valid
+        if self.cache_is_valid(**params):
+            # return cached value
+            return self.read(**params)
+        else:
+            # run process normally (and save value to cache)
+            return super()._run(node)
+
+    @abc.abstractmethod
+    def read(self, **kwargs):
+        pass
+
+    @abc.abstractmethod
+    def write(self, source, **kwargs):
+        pass
+
+    @abc.abstractmethod
+    def cache_is_valid(self, **kwargs):
+        pass

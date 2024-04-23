@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from workflowlib.loaders import ChannelTCLoggerLoader
-from workflowlib.transforms import SelectColumns, SelectTimespan
+from workflowlib.dataframes import SelectColumns, SelectTimespan
 
 
 class TestSelectColumns:

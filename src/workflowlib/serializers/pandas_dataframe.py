@@ -35,3 +35,6 @@ class PandasDataFrameSerializer(Serializer):
                 source.to_hdf(self.ensure_parent_path_exists(uri), **options)
             case _:
                 raise ValueError(f'Unsupported format: {self.format}')
+
+    def run(self, *args, **kwargs):
+        return args[0]

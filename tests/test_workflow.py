@@ -171,29 +171,3 @@ class TestWorkflow:
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 16
         assert len(df.columns) == 7
-
-    def test_workflow_with_preprocess_result(self, data_path):
-
-        class Dummy(ProcessBase):
-            def preprocess(self):
-                return 'pre-processed result'
-
-        register(Dummy(name='dummy', version='1'))
-
-        descriptor = [
-            {
-                'run': 'mks.ftir@v1',
-                'params': {
-                    'source': str(data_path / 'mks_ftir/2024-01-16-conc.prn'),
-                },
-            },
-            {'run': 'dummy@v1'},
-        ]
-
-        # create workflow
-        workflow = Workflow.create(descriptor)
-        assert isinstance(workflow, Workflow)
-
-        # run workflow
-        result = workflow.run()
-        assert result == 'pre-processed result'

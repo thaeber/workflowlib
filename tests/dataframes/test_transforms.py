@@ -5,7 +5,7 @@ import pandas as pd
 import pint_pandas
 
 from workflowlib.loaders import ChannelTCLoggerLoader
-from workflowlib.transforms import DataFrameJoin, DataFrameSetIndex, DataFrameUnits
+from workflowlib.dataframes import DataFrameJoin, DataFrameSetIndex, DataFrameUnits
 
 
 class TestDataFrameJoin:

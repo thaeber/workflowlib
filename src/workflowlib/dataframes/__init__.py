@@ -1,12 +1,17 @@
 from ..registry import register
-from .dataframe import (
+from .io import DataFrameFileCache, DataFrameReadCSV, DataFrameWriteCSV
+from .selection import SelectColumns, SelectTimespan
+from .transforms import (
     DataFrameFillNA,
     DataFrameInterpolate,
     DataFrameJoin,
     DataFrameSetIndex,
     DataFrameUnits,
 )
-from .selection import SelectColumns, SelectTimespan
+
+register(DataFrameReadCSV())
+register(DataFrameWriteCSV())
+register(DataFrameFileCache())
 
 register(DataFrameFillNA())
 register(DataFrameInterpolate())
