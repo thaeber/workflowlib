@@ -157,6 +157,9 @@ class DataFrameWriteCSV(Writer):
         # write data to csv
         source.to_csv(target, **options)  # type: ignore
 
+        # return unaltered data
+        return source
+
 
 class DataFrameFileCache(Cache):
     name: str = 'dataframe.cache.csv'
