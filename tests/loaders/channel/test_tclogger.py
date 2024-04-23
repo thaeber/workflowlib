@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from workflowlib.loaders import ChannelTCLoggerLoader
+from rdmlibpy.loaders import ChannelTCLoggerLoader
 
 
 class TestChannelTCLoggerLoader:

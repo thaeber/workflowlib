@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Any, ClassVar
 
-from workflowlib.base import ProcessBase, ProcessNode
-from workflowlib.process import Cache, Loader, Writer, DelegatedSource
+from rdmlibpy.base import ProcessBase, ProcessNode
+from rdmlibpy.process import Cache, Loader, Writer, DelegatedSource
 
 
 class TestDelegatedSource:

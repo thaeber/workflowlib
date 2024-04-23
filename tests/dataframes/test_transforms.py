@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import pint_pandas
 
-from workflowlib.loaders import ChannelTCLoggerLoader
-from workflowlib.dataframes import DataFrameJoin, DataFrameSetIndex, DataFrameUnits
+from rdmlibpy.loaders import ChannelTCLoggerLoader
+from rdmlibpy.dataframes import DataFrameJoin, DataFrameSetIndex, DataFrameUnits
 
 
 class TestDataFrameJoin:

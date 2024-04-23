@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from typing import Any, Callable
 
-from workflowlib.base import ProcessBase, ProcessNode
+from rdmlibpy.base import ProcessBase, ProcessNode
 
 
 class DelegatedSource(ProcessBase):

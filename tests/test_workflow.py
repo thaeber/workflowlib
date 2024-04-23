@@ -1,8 +1,8 @@
 import pandas as pd
 
-from workflowlib import Workflow, run
-from workflowlib.process import ProcessBase
-from workflowlib.registry import register
+from rdmlibpy import Workflow, run
+from rdmlibpy.process import ProcessBase
+from rdmlibpy.registry import register
 
 
 def test_run_step(data_path):

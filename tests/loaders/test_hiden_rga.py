@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from workflowlib.loaders import HidenRGALoader
+from rdmlibpy.loaders import HidenRGALoader
 
 
 class TestHidenRGALoader:

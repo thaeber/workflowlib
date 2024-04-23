@@ -3,8 +3,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from workflowlib.loaders import ChannelTCLoggerLoader
-from workflowlib.dataframes import SelectColumns, SelectTimespan
+from rdmlibpy.loaders import ChannelTCLoggerLoader
+from rdmlibpy.dataframes import SelectColumns, SelectTimespan
 
 
 class TestSelectColumns:

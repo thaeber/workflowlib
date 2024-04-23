@@ -6,13 +6,13 @@ import numpy as np
 import pandas as pd
 import pint_pandas
 
-from workflowlib.base import PlainProcessParam, ProcessNode
-from workflowlib.dataframes import (
+from rdmlibpy.base import PlainProcessParam, ProcessNode
+from rdmlibpy.dataframes import (
     DataFrameFileCache,
     DataFrameReadCSV,
     DataFrameWriteCSV,
 )
-from workflowlib.process import DelegatedSource
+from rdmlibpy.process import DelegatedSource
 
 
 class TestDataFrameReadCSV:
