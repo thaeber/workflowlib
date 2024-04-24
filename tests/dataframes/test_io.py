@@ -4,6 +4,7 @@ from textwrap import dedent
 
 import numpy as np
 import pandas as pd
+import pandas._testing as tm
 import pint_pandas
 
 from rdmlibpy.base import PlainProcessParam, ProcessNode
@@ -147,7 +148,7 @@ class TestDataFrameWriteCSV:
         assert writer.version == '1'
         assert writer.decimal == '.'
         assert writer.separator == ','
-        assert writer.index == False
+        assert writer.index == 'reset-named'
 
     def test_returns_data(self, tmp_path: Path):
         df = pd.DataFrame(data=dict(A=[1.1, 2.2, 3.3], B=['aa', 'bb', 'cc']))
@@ -170,6 +171,92 @@ class TestDataFrameWriteCSV:
         df = pd.read_csv(path, sep=';')
         assert list(df.A) == [1.1, 2.2, 3.3]
         assert list(df.B) == ['aa', 'bb', 'cc']
+
+    def test_index_false(self, tmp_path: Path):
+        df = pd.DataFrame(data=dict(A=[1.1, 2.2, 3.3], B=['aa', 'bb', 'cc']))
+        path = tmp_path / 'data.csv'
+
+        serializer = DataFrameWriteCSV(separator=';', index=False)
+        serializer.run(df, path)
+
+        assert path.exists()
+        actual = pd.read_csv(path, sep=';')
+        tm.assert_frame_equal(df, actual)
+
+    def test_index_true(self, tmp_path: Path):
+        df = pd.DataFrame(data=dict(A=[1.1, 2.2, 3.3], B=['aa', 'bb', 'cc']))
+        path = tmp_path / 'data.csv'
+
+        serializer = DataFrameWriteCSV(separator=';', index=True)
+        serializer.run(df, path)
+
+        assert path.exists()
+        actual = pd.read_csv(path, sep=';', index_col=0)
+        tm.assert_frame_equal(df, actual, check_column_type=False)
+
+    def test_index_true_with_named_index(self, tmp_path: Path):
+        df = pd.DataFrame(
+            data=dict(A=[1.1, 2.2, 3.3], B=['aa', 'bb', 'cc']),
+            index=pd.Index(['i', 'ii', 'iii'], name='C'),
+        )
+        path = tmp_path / 'data.csv'
+
+        serializer = DataFrameWriteCSV(index=True)
+        serializer.run(df, path)
+
+        assert path.exists()
+        actual = pd.read_csv(path, index_col=0)
+        tm.assert_frame_equal(df, actual, check_column_type=False)
+
+    def test_index_reset(self, tmp_path: Path):
+        df = pd.DataFrame(data=dict(A=[1.1, 2.2, 3.3], B=['aa', 'bb', 'cc']))
+        path = tmp_path / 'data.csv'
+
+        serializer = DataFrameWriteCSV(index='reset')
+        serializer.run(df, path)
+
+        assert path.exists()
+        actual = pd.read_csv(path)
+        tm.assert_frame_equal(df.reset_index(), actual, check_column_type=False)
+
+    def test_index_reset_with_named_index(self, tmp_path: Path):
+        df = pd.DataFrame(
+            data=dict(A=[1.1, 2.2, 3.3], B=['aa', 'bb', 'cc']),
+            index=pd.Index(['i', 'ii', 'iii'], name='C'),
+        )
+        path = tmp_path / 'data.csv'
+
+        serializer = DataFrameWriteCSV(index='reset')
+        serializer.run(df, path)
+
+        assert path.exists()
+        actual = pd.read_csv(path)
+        tm.assert_frame_equal(df.reset_index(), actual, check_column_type=False)
+
+    def test_index_reset_named(self, tmp_path: Path):
+        df = pd.DataFrame(
+            data=dict(A=[1.1, 2.2, 3.3], B=['aa', 'bb', 'cc']),
+            index=pd.Index(['i', 'ii', 'iii'], name='C'),
+        )
+        path = tmp_path / 'data.csv'
+
+        serializer = DataFrameWriteCSV(index='reset-named')
+        serializer.run(df, path)
+
+        assert path.exists()
+        actual = pd.read_csv(path)
+        tm.assert_frame_equal(df.reset_index(), actual, check_column_type=False)
+
+    def test_index_reset_named_with_unnamed_index(self, tmp_path: Path):
+        df = pd.DataFrame(data=dict(A=[1.1, 2.2, 3.3], B=['aa', 'bb', 'cc']))
+        path = tmp_path / 'data.csv'
+
+        serializer = DataFrameWriteCSV(index='reset-named')
+        serializer.run(df, path)
+
+        assert path.exists()
+        actual = pd.read_csv(path)
+        tm.assert_frame_equal(df, actual, check_column_type=False)
 
     def test_write_csv_with_runtime_arguments(self, tmp_path: Path):
         df = pd.DataFrame(data=dict(A=[1.1, 2.2, 3.3], B=['aa', 'bb', 'cc']))

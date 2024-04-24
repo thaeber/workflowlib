@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 import numpy as np
 import pandas as pd
@@ -118,13 +118,16 @@ class DataFrameReadCSV(DataFrameReadCSVBase):
     name: str = 'dataframe.read.csv'
 
 
+IndexHandling = bool | Literal['reset-named'] | Literal['reset']
+
+
 class DataFrameWriteCSV(Writer):
     name: str = 'dataframe.write.csv'
     version: str = '1'
 
     decimal: str = '.'
     separator: str = ','
-    index: bool = False
+    index: IndexHandling = 'reset-named'
     options: Dict[str, Any] = pydantic.Field(default_factory=dict)  # type: ignore
     date_format: Optional[str] = r'%Y-%m-%dT%H:%M:%S.%f'
     dequantify: bool = False
@@ -133,35 +136,50 @@ class DataFrameWriteCSV(Writer):
         self,
         source: pd.DataFrame,
         filename: FilePath | WriteBuffer[str] | WriteBuffer[bytes],
-        dequantify: bool = False,
         **kwargs,
     ):
         # safe reference to input value to return
         input = source
 
-        # merge process configuration with runtime keyword arguments
-        options = dict(
+        # setup options for write_csv
+        write_csv_options: Dict[str, Any] = dict(
             sep=self.separator,
             decimal=self.decimal,
-            index=self.index,
             date_format=self.date_format,
         )
-        options |= self.options
-        options |= kwargs
+
+        # handling of indices
+        index, source = self._handle_indices(source, kwargs.pop('index', self.index))
+        write_csv_options['index'] = index
+
+        # promote units to multi-index header
+        if kwargs.pop('dequantify', self.dequantify):
+            source = source.pint.dequantify()
+
+        # merge process configuration with runtime keyword arguments
+        write_csv_options |= self.options
+        write_csv_options |= kwargs
 
         # create paths if necessary
         if isinstance(filename, FilePath):
             filename = self.ensure_path(filename)
 
-        # promote units to multi-index header
-        if dequantify or (dequantify and self.dequantify):
-            source = source.pint.dequantify()
-
         # write data to csv
-        source.to_csv(filename, **options)  # type: ignore
+        source.to_csv(filename, **write_csv_options)  # type: ignore
 
         # return unaltered data
         return input
+
+    def _handle_indices(self, source: pd.DataFrame, index: IndexHandling):
+        match index:
+            case bool(value):
+                return value, source
+            case 'reset':
+                return False, source.reset_index()
+            case 'reset-named':
+                if source.index.name:
+                    source = source.reset_index()
+                return False, source
 
 
 class DataFrameFileCache(Cache):
