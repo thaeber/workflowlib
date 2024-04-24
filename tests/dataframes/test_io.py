@@ -9,6 +9,7 @@ import pint_pandas
 
 from rdmlibpy.base import PlainProcessParam, ProcessNode
 from rdmlibpy.dataframes import DataFrameFileCache, DataFrameReadCSV, DataFrameWriteCSV
+from rdmlibpy.dataframes.io import quantify
 from rdmlibpy.process import DelegatedSource
 
 
@@ -149,6 +150,7 @@ class TestDataFrameWriteCSV:
         assert writer.decimal == '.'
         assert writer.separator == ','
         assert writer.index == 'reset-named'
+        assert writer.units == 'auto'
 
     def test_returns_data(self, tmp_path: Path):
         df = pd.DataFrame(data=dict(A=[1.1, 2.2, 3.3], B=['aa', 'bb', 'cc']))
@@ -301,7 +303,7 @@ class TestDataFrameWriteCSV:
         ]
         assert (df == df2).values.all()
 
-    def test_write_with_units(self, tmp_path: Path):
+    def test_dequantify_units(self, tmp_path: Path):
         # check a successful write/read with default settings
         df = pd.DataFrame(
             data=dict(
@@ -318,11 +320,11 @@ class TestDataFrameWriteCSV:
         path = tmp_path / 'data.csv'
 
         writer = DataFrameWriteCSV()
-        writer.run(df, path, dequantify=True)
+        writer.run(df, path, units='dequantify')
         assert path.exists()
 
         # load data from written file
-        df2 = pd.read_csv(
+        actual = pd.read_csv(
             path,
             sep=',',
             decimal='.',
@@ -330,17 +332,72 @@ class TestDataFrameWriteCSV:
             date_format='ISO8601',
             header=[0, 1],
         )
-        df2 = df2.pint.quantify(level=-1)
-        for col in df2.columns:
-            try:
-                if df2[col].dtype == 'object':
-                    df2[col] = pd.to_numeric(df2[col])
-            except ValueError:
-                pass
+        actual = quantify(actual, level=-1)
 
-        assert list(df.columns) == list(df2.columns)
-        assert (df == df2).values.all()
-        assert list(df.dtypes) == list(df2.dtypes)
+        tm.assert_frame_equal(actual, df)
+
+    def test_keep_units(self, tmp_path: Path):
+        # check a successful write/read with default settings
+        df = pd.DataFrame(
+            data=dict(
+                A=[1.1, 2.2, 3.3],
+                B=['aa', 'bb', 'cc'],
+            )
+        )
+        df['E'] = pint_pandas.PintArray([1.0, 2.0, 3.0], dtype='pint[m]')
+        path = tmp_path / 'data.csv'
+
+        writer = DataFrameWriteCSV()
+        writer.run(df, path, units='keep-units')
+        assert path.exists()
+
+        # load data from written file
+        actual = pd.read_csv(path)
+
+        df['E'] = df['E'].astype(
+            str
+        )  # that's what the column looks like in the csv file
+        tm.assert_frame_equal(df, actual)
+
+    def test_auto_units(self, tmp_path: Path):
+        # check a successful write/read with default settings
+        df = pd.DataFrame(
+            data=dict(
+                A=[1.1, 2.2, 3.3],
+                B=['aa', 'bb', 'cc'],
+            )
+        )
+        df['E'] = pint_pandas.PintArray([1.0, 2.0, 3.0], dtype='pint[m]')
+        path = tmp_path / 'data.csv'
+
+        writer = DataFrameWriteCSV()
+        writer.run(df, path)
+        assert path.exists()
+
+        # load data from written file
+        actual = pd.read_csv(path, header=[0, 1])
+        actual = quantify(actual, level=-1)
+
+        tm.assert_frame_equal(df, actual)
+
+    def test_auto_units_without_units_present(self, tmp_path: Path):
+        # check a successful write/read with default settings
+        df = pd.DataFrame(
+            data=dict(
+                A=[1.1, 2.2, 3.3],
+                B=['aa', 'bb', 'cc'],
+            )
+        )
+        path = tmp_path / 'data.csv'
+
+        writer = DataFrameWriteCSV()
+        writer.run(df, path)
+        assert path.exists()
+
+        # load data from written file
+        actual = pd.read_csv(path, header=[0])
+
+        tm.assert_frame_equal(df, actual)
 
 
 class TestDataFrameCSVCache:

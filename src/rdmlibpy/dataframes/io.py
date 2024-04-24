@@ -119,6 +119,7 @@ class DataFrameReadCSV(DataFrameReadCSVBase):
 
 
 IndexHandling = bool | Literal['reset-named'] | Literal['reset']
+UnitHandling = Literal['auto', 'keep-units', 'dequantify']
 
 
 class DataFrameWriteCSV(Writer):
@@ -130,7 +131,7 @@ class DataFrameWriteCSV(Writer):
     index: IndexHandling = 'reset-named'
     options: Dict[str, Any] = pydantic.Field(default_factory=dict)  # type: ignore
     date_format: Optional[str] = r'%Y-%m-%dT%H:%M:%S.%f'
-    dequantify: bool = False
+    units: UnitHandling = 'auto'
 
     def run(
         self,
@@ -153,8 +154,16 @@ class DataFrameWriteCSV(Writer):
         write_csv_options['index'] = index
 
         # promote units to multi-index header
-        if kwargs.pop('dequantify', self.dequantify):
-            source = source.pint.dequantify()
+        # if kwargs.pop('dequantify', self.dequantify):
+        #     source = source.pint.dequantify()
+        match kwargs.pop('units', self.units):
+            case 'auto':
+                if not source.select_dtypes('pint[]').empty:  # type: ignore
+                    source = source.pint.dequantify()
+            case 'dequantify':
+                source = source.pint.dequantify()
+            case 'keep-units':
+                pass
 
         # merge process configuration with runtime keyword arguments
         write_csv_options |= self.options
