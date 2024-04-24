@@ -194,6 +194,9 @@ class DataFrameFileCache(Cache):
             if isinstance(source.iloc[:, i].values, pandas.arrays.FloatingArray):  # type: ignore
                 source[col] = np.array(source[col])
 
+        # create path (if necessary)
+        self.ensure_path(filename)
+
         # write data to HDF5 file
         source.to_hdf(filename, key='data')
 
