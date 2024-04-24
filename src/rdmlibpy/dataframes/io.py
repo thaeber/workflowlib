@@ -136,6 +136,9 @@ class DataFrameWriteCSV(Writer):
         dequantify: bool = False,
         **kwargs,
     ):
+        # safe reference to input value to return
+        input = source
+
         # merge process configuration with runtime keyword arguments
         options = dict(
             sep=self.separator,
@@ -158,7 +161,7 @@ class DataFrameWriteCSV(Writer):
         source.to_csv(filename, **options)  # type: ignore
 
         # return unaltered data
-        return source
+        return input
 
 
 class DataFrameFileCache(Cache):

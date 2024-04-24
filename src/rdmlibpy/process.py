@@ -75,7 +75,7 @@ class Transform(ProcessBase):
     pass
 
 
-class Cache(ProcessBase):
+class Cache(Writer):
 
     def run(self, source, **kwargs):
         # write source to cache
