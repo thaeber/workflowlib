@@ -17,6 +17,7 @@ numpy = "^1.26"
 pint-pandas = "^0.5"
 python-dateutil = "^2.8"
 tables = "^3.9.2"
+omegaconf = "^2.3.0"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -2,8 +2,9 @@ from typing import Dict, Iterable, List, Literal, Mapping, Sequence
 
 import numpy as np
 import pandas as pd
-from pandas._typing import JoinHow
 import pint_pandas
+from omegaconf import OmegaConf
+from pandas._typing import JoinHow
 
 from ..process import Transform
 
@@ -33,7 +34,7 @@ class DataFrameJoin(Transform):
 
     def interpolate(self, df: pd.DataFrame):
         # check if indices are datetime64
-        if np.issubdtype(df.index.dtype, np.datetime64):
+        if np.issubdtype(df.index.dtype, np.datetime64):  # type: ignore
             x = (df.index - df.index[0]).total_seconds()
         else:
             x = df.index
@@ -49,8 +50,9 @@ class DataFrameJoin(Transform):
                         np.interp(x, xp, yp), dtype=df[col].dtype
                     )
                 except ValueError:
+                    values = df[col].pint.m.values
                     df[col] = pint_pandas.PintArray(
-                        np.full_like(df[col].pint.m.values, np.nan), dtype=df[col].dtype
+                        np.full_like(values, np.nan), dtype=df[col].dtype
                     )
             else:
                 isnan = np.isnan(df[col])
@@ -189,4 +191,23 @@ class DataFrameUnits(Transform):
             else:
                 # do nothing
                 pass
+        return source
+
+
+class DataFrameAttributes(Transform):
+    name: str = 'dataframe.set.attrs'
+    version: str = '1'
+
+    def run(self, source: pd.DataFrame, **kwargs):
+        # make deep copy of attributes
+        # (roundtrip serialization to yaml)
+        attrs = OmegaConf.to_object(
+            OmegaConf.create(
+                OmegaConf.to_yaml(
+                    OmegaConf.create(kwargs),
+                ),
+            ),
+        )
+
+        source.attrs.update(attrs)  # type: ignore
         return source

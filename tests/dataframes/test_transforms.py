@@ -2,10 +2,16 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pandas._testing as tm
 import pint_pandas
 
+from rdmlibpy.dataframes import (
+    DataFrameAttributes,
+    DataFrameJoin,
+    DataFrameSetIndex,
+    DataFrameUnits,
+)
 from rdmlibpy.loaders import ChannelTCLoggerLoader
-from rdmlibpy.dataframes import DataFrameJoin, DataFrameSetIndex, DataFrameUnits
 
 
 class TestDataFrameJoin:
@@ -209,3 +215,72 @@ class TestDataFrameUnits:
         assert df['sample-downstream'].dtype == 'pint[K]'
         assert df['inlet'].dtype == 'pint[degC]'
         assert df['outlet'].dtype == 'pint[degC]'
+
+
+class TestDataFrameAttributes:
+    def test_create(self):
+        process = DataFrameAttributes()
+
+        assert process.name == 'dataframe.set.attrs'
+
+    def test_add_attributes(self):
+        df = pd.DataFrame(
+            data=dict(
+                A=[1.1, 2.2, 3.3],
+                B=['aa', 'bb', 'cc'],
+            ),
+        )
+
+        process = DataFrameAttributes()
+        attrs = {
+            'date': '2024-04-15',
+            'title': 'NH3 oxidation over Pd; blind test w/o O2',
+            'sample-id': 'Plate2302F',
+            'sample-note': '2.4% Pd/Al2O3 (RefCat4)',
+            'inlet': {
+                'flow_rate': '1.0L/min',
+                'temperature': '293K',
+                'composition': {'NH3': '1000ppm', 'O2': '0%', 'N2': '*'},
+            },
+            'id': '2024-04-15A01',
+            'tag': 'light-off',
+            'start': '2024-04-15T06:17:00',
+            'stop': '2024-04-15T09:17:00',
+        }
+        actual = process.run(df, **attrs)
+
+        # check that run returns the same instance
+        assert actual is df
+        tm.assert_frame_equal(actual, df)
+
+        assert actual.attrs == attrs
+
+    def test_makes_deep_copy_of_parameters(self):
+        df = pd.DataFrame(
+            data=dict(
+                A=[1.1, 2.2, 3.3],
+                B=['aa', 'bb', 'cc'],
+            ),
+        )
+
+        process = DataFrameAttributes()
+        attrs = dict(
+            A1='a1',
+            A2=2,
+            A3=3.0,
+            A4=dict(
+                B1='b1',
+                B2=4,
+                B3=9.0,
+                B4=dict(C1='c1', C2=8, C3=27.0),
+            ),
+        )
+        actual = process.run(df, **attrs)
+
+        # check that attributes are equal
+        assert actual.attrs == attrs
+
+        # modify source dictionary and check again; now the
+        # dictionaries should not be equal
+        attrs['A4']['B4']['C4'] = 'test'  # type: ignore
+        assert not (dict(actual.attrs) == dict(attrs))
