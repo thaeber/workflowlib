@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, cast
 
 import numpy as np
 import pandas as pd
@@ -120,6 +120,7 @@ class DataFrameReadCSV(DataFrameReadCSVBase):
 
 IndexHandling = bool | Literal['reset-named'] | Literal['reset']
 UnitHandling = Literal['auto', 'keep-units', 'dequantify']
+AttributesHandling = Literal['auto', 'keep', 'discard']
 
 
 class DataFrameWriteCSV(Writer):
@@ -197,7 +198,14 @@ class DataFrameFileCache(Cache):
 
     def read(self, filename: FilePath, rebuild: bool = False, **kwargs):
         # load data from HDF5 file
-        cached = pd.read_hdf(filename, key='data')
+        # cached = pd.read_hdf(filename, key='data')
+        with pd.HDFStore(filename, 'r') as store:
+            cached = store['data']
+
+            # load attributes
+            store_attrs = store.get_storer('data').attrs  # type: ignore
+            if 'my_metadata' in store_attrs:
+                cached.attrs.update(store_attrs.my_metadata)
 
         # convert units back to PintArrays
         # cached = cached.pint.quantify(level=-1)
@@ -213,24 +221,40 @@ class DataFrameFileCache(Cache):
         self, source: pd.DataFrame, filename: FilePath, rebuild: bool = False, **kwargs
     ):
         # promote units to multi-index
-        source = source.pint.dequantify()
+        df = dequantify(source)
 
         # get around some HDF5 restrictions, which can't handle FloatingArray data
         # used by pint
-        for i, col in enumerate(source.columns):
-            if isinstance(source.iloc[:, i].values, pandas.arrays.FloatingArray):  # type: ignore
-                source[col] = np.array(source[col])
+        for i, col in enumerate(df.columns):
+            if isinstance(df.iloc[:, i].values, pandas.arrays.FloatingArray):  # type: ignore
+                df[col] = np.array(df[col])
 
         # create path (if necessary)
         self.ensure_path(filename)
 
         # write data to HDF5 file
-        source.to_hdf(filename, key='data')
+        # source.to_hdf(filename, key='data')
+        with pd.HDFStore(filename, mode='w') as store:
+            store['data'] = df
+
+            # save attributes
+            store.get_storer('data').attrs.my_metadata = df.attrs  # type: ignore
+            self.ensure_path(filename)
 
     def cache_is_valid(self, filename: FilePath, rebuild: bool = False):
         if rebuild:
             return False
         return Path(filename).exists()
+
+
+def dequantify(df: pd.DataFrame):
+    df_new = df.pint.dequantify()
+    df_new = cast(pd.DataFrame, df_new)
+
+    # preserve attrs dictionary
+    df_new.attrs.update(df.attrs)
+
+    return df_new
 
 
 def quantify(df, level=-1):
@@ -255,5 +279,8 @@ def quantify(df, level=-1):
 
     df_new.columns = df_columns.index.droplevel(unit_col_name)
     df_new.index = df.index
+
+    # preserve attrs dictionary
+    df_new.attrs.update(df.attrs)
 
     return df_new

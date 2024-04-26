@@ -507,7 +507,7 @@ class TestDataFrameCSVCache:
         assert (df == cached).values.all()
 
     def test_dataframe_with_index(self, tmp_path):
-        path = tmp_path / 'cache.csv'
+        path = tmp_path / 'cache.hd5'
         df = pd.DataFrame(
             data=dict(
                 A=[1.1, 2.2, 3.3],
@@ -546,7 +546,7 @@ class TestDataFrameCSVCache:
         assert (df2 == cached).values.all()
 
     def test_dataframe_with_datetime_index(self, tmp_path):
-        path = tmp_path / 'cache.csv'
+        path = tmp_path / 'cache.hd5'
         df = pd.DataFrame(
             data=dict(
                 A=[1.1, 2.2, 3.3],
@@ -585,7 +585,7 @@ class TestDataFrameCSVCache:
         assert (df2 == cached).values.all()
 
     def test_dataframe_with_units(self, tmp_path):
-        path = tmp_path / 'cache.csv'
+        path = tmp_path / 'cache.hd5'
         df = pd.DataFrame(
             data=dict(
                 A=[1.1, 2.2, 3.3],
@@ -624,3 +624,35 @@ class TestDataFrameCSVCache:
         assert list(original.columns) == list(cached.columns)
         assert list(original.dtypes) == list(cached.dtypes)
         assert (original == cached).values.all()
+
+    def test_preserve_attrs(self, tmp_path):
+        path = tmp_path / 'cache.hd5'
+        df = pd.DataFrame(
+            data=dict(
+                A=[1.1, 2.2, 3.3],
+                B=['aa', 'bb', 'cc'],
+            ),
+        )
+        df.attrs.update(
+            dict(date='2024-04-26', inlet=dict(flow_rate='1.0L/min', scale=2.0))
+        )
+
+        workflow = ProcessNode(
+            ProcessNode(None, DelegatedSource(delegate=lambda: df), {}),
+            DataFrameFileCache(),
+            {
+                'filename': PlainProcessParam(str(path)),
+            },
+        )
+
+        # create cache
+        assert not path.exists()
+        workflow.run()
+
+        # load cached version (by running process again)
+        cached = workflow.run()
+        assert cached is not df
+
+        # assert content
+        tm.assert_frame_equal(df, cached)
+        assert df.attrs == cached.attrs
