@@ -81,7 +81,6 @@ class DataFrameReadCSVBase(Loader):
     def _parse_dates_joining_columns(
         self, df: pd.DataFrame, target_name: str, column_names: List[str]
     ):
-
         def join_columns(column_names):
             return df[column_names].astype(str).agg(' '.join, axis=1)
 
@@ -101,7 +100,8 @@ class DataFrameReadCSVBase(Loader):
         index = df.columns.get_loc(column)
         if not isinstance(index, int):
             raise ValueError(
-                f'Column label must be unique. Found multiple indices ({index}) for label ({column}).'
+                'Column label must be unique. Found multiple indices '
+                + '({index}) for label ({column}).'
             )
 
         # "pop" column & generate datetime series
@@ -226,7 +226,10 @@ class DataFrameFileCache(Cache):
         # get around some HDF5 restrictions, which can't handle FloatingArray data
         # used by pint
         for i, col in enumerate(df.columns):
-            if isinstance(df.iloc[:, i].values, pandas.arrays.FloatingArray):  # type: ignore
+            if isinstance(
+                df.iloc[:, i].values,
+                pandas.arrays.FloatingArray,  # type: ignore
+            ):
                 df[col] = np.array(df[col])
 
         # create path (if necessary)

@@ -36,7 +36,8 @@ class Workflow:
                 return Workflow._create_sequence(parent, sequence)
             case _:
                 raise ValueError(
-                    'The workflow descriptor must be either a mapping or a sequence of mappings.'
+                    'The workflow descriptor must be either a mapping '
+                    + 'or a sequence of mappings.'
                 )
 
     @staticmethod

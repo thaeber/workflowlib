@@ -30,7 +30,7 @@ class PandasDataFrameSerializer(Serializer):
                 source.to_csv(self.ensure_parent_path_exists(uri), **self.options)
             case 'HDF5':
                 options = self.options.copy()
-                if not 'key' in options:
+                if 'key' not in options:
                     options.update(key='data')
                 source.to_hdf(self.ensure_parent_path_exists(uri), **options)
             case _:

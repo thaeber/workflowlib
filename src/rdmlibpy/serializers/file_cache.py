@@ -1,7 +1,6 @@
 from pathlib import Path
 import pandas as pd
 
-import pydantic
 
 from ..process import ProcessBase, Serializer
 from .pandas_dataframe import PandasDataFrameSerializer

@@ -1,8 +1,6 @@
 import pandas as pd
 
 from rdmlibpy import Workflow, run
-from rdmlibpy.process import ProcessBase
-from rdmlibpy.registry import register
 
 
 def test_run_step(data_path):
@@ -40,7 +38,6 @@ def test_run_sequence(data_path):
 
 
 class TestWorkflow:
-
     def test_workflow_with_single_process(self, data_path):
         descriptor = {
             'run': 'mks.ftir@v1',

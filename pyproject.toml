@@ -26,6 +26,7 @@ bump-my-version = "^0.20.0"
 pandas-stubs = "^2.2.1.240316"
 pytest-watcher = "^0.4.2"
 git-changelog = "^2.5.2"
+pre-commit = "^3.7.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -64,3 +65,6 @@ output = "changelog.md"
 provider = "github"
 sections = "fix,feat,refactor,chore,style,build"
 template = "angular"
+
+[tool.black]
+skip-string-normalization=true

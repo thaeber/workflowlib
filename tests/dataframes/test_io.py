@@ -401,7 +401,6 @@ class TestDataFrameWriteCSV:
 
 
 class TestDataFrameCSVCache:
-
     def test_create(self):
         cache = DataFrameFileCache()
 

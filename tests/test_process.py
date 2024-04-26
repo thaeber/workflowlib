@@ -93,9 +93,7 @@ class TestWriter:
 
 
 class TestCache:
-
     def test_logic_cache_is_valid(self):
-
         class MySource(ProcessBase):
             name: str = 'my_source'
             version: str = '1'
@@ -125,7 +123,7 @@ class TestCache:
         )
 
         # 1st run
-        assert MyCache.cached == None
+        assert MyCache.cached is None
         assert workflow.run() == 1
 
         # 2nd run
@@ -141,7 +139,6 @@ class TestCache:
         assert MyCache.cached == 1
 
     def test_logic_cache_is_not_valid(self):
-
         class MySource(ProcessBase):
             name: str = 'my_source'
             version: str = '1'
@@ -172,7 +169,7 @@ class TestCache:
         )
 
         # 1st run
-        assert MyCache.cached == None
+        assert MyCache.cached is None
         assert workflow.run() == 1
 
         # 2nd run
