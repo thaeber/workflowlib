@@ -1,4 +1,4 @@
-name: workflowlib
+name: rdmlibpy
 channels:
   - defaults
 dependencies:
