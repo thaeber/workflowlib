@@ -53,7 +53,9 @@ class DataFrameReadCSVBase(Loader):
             logger.info('Reading CSV data from text buffer')
 
         # merge process configuration with runtime keyword arguments
-        options = dict(sep=self.separator, decimal=self.decimal, **self.options)
+        options = dict(
+            sep=self.separator, decimal=self.decimal, encoding='utf-8', **self.options
+        )
         options |= kwargs
 
         # load csv data & return

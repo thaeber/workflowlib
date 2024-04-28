@@ -41,7 +41,7 @@ class TestPandasDataFrameSerializer:
         serializer.write(df, path)
 
         assert path.exists()
-        df = pd.read_csv(path, sep=';')
+        df = pd.read_csv(path, sep=';', encoding='utf-8')
         assert list(df.A) == [1.1, 2.2, 3.3]
         assert list(df.B) == ['aa', 'bb', 'cc']
 

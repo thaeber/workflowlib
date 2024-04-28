@@ -64,7 +64,7 @@ class HidenRGALoader(DataFrameReadCSVBase):
         return df[cols]
 
     def run(self, source):
-        with open(source, 'r') as file:
+        with open(source, 'r', encoding='utf-8') as file:
             header = self.parse_header(file)
         t0 = datetime.combine(header['date'], header['time'])
 

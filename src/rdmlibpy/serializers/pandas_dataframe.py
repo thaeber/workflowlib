@@ -18,7 +18,7 @@ class PandasDataFrameSerializer(Serializer):
     def load(self, uri: Path):
         match self.format:
             case 'csv':
-                return pd.read_csv(uri, **self.options)
+                return pd.read_csv(uri, encoding='utf-8', **self.options)
             case 'HDF5':
                 return pd.read_hdf(uri, self.options.get('key', 'data'))
             case _:
