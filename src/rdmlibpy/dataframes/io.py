@@ -181,9 +181,9 @@ class DataFrameWriteCSV(Writer):
         match kwargs.pop('units', self.units):
             case 'auto':
                 if not source.select_dtypes('pint[]').empty:  # type: ignore
-                    source = source.pint.dequantify()
+                    source = dequantify(source)
             case 'dequantify':
-                source = source.pint.dequantify()
+                source = dequantify(source)
             case 'keep-units':
                 pass
 
