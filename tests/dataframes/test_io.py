@@ -11,6 +11,7 @@ from rdmlibpy.base import PlainProcessParam, ProcessNode
 from rdmlibpy.dataframes import DataFrameFileCache, DataFrameReadCSV, DataFrameWriteCSV
 from rdmlibpy.dataframes.io import quantify
 from rdmlibpy.process import DelegatedSource
+from omegaconf import OmegaConf
 
 
 class TestDataFrameReadCSV:
@@ -151,6 +152,7 @@ class TestDataFrameWriteCSV:
         assert writer.separator == ','
         assert writer.index == 'reset-named'
         assert writer.units == 'auto'
+        assert writer.attributes == 'auto'
 
     def test_returns_data(self, tmp_path: Path):
         df = pd.DataFrame(data=dict(A=[1.1, 2.2, 3.3], B=['aa', 'bb', 'cc']))
@@ -304,7 +306,6 @@ class TestDataFrameWriteCSV:
         assert (df == df2).values.all()
 
     def test_dequantify_units(self, tmp_path: Path):
-        # check a successful write/read with default settings
         df = pd.DataFrame(
             data=dict(
                 A=[1.1, 2.2, 3.3],
@@ -337,7 +338,6 @@ class TestDataFrameWriteCSV:
         tm.assert_frame_equal(actual, df)
 
     def test_keep_units(self, tmp_path: Path):
-        # check a successful write/read with default settings
         df = pd.DataFrame(
             data=dict(
                 A=[1.1, 2.2, 3.3],
@@ -360,7 +360,6 @@ class TestDataFrameWriteCSV:
         tm.assert_frame_equal(df, actual)
 
     def test_auto_units(self, tmp_path: Path):
-        # check a successful write/read with default settings
         df = pd.DataFrame(
             data=dict(
                 A=[1.1, 2.2, 3.3],
@@ -381,7 +380,6 @@ class TestDataFrameWriteCSV:
         tm.assert_frame_equal(df, actual)
 
     def test_auto_units_without_units_present(self, tmp_path: Path):
-        # check a successful write/read with default settings
         df = pd.DataFrame(
             data=dict(
                 A=[1.1, 2.2, 3.3],
@@ -398,6 +396,78 @@ class TestDataFrameWriteCSV:
         actual = pd.read_csv(path, header=[0])
 
         tm.assert_frame_equal(df, actual)
+
+    def test_write_attributes_as_comment(self, tmp_path):
+        df = pd.DataFrame(
+            data=dict(
+                A=[1.1, 2.2, 3.3],
+                B=['aa', 'bb', 'cc'],
+            )
+        )
+        df.attrs.update(
+            dict(
+                date='2024-04-27',
+                trial=3,
+                inlet=dict(flow_rate='1.0L/min', T='20°C'),
+            )
+        )
+        path = tmp_path / 'data.csv'
+
+        # write csv data (will save attrs by default)
+        writer = DataFrameWriteCSV()
+        writer.run(df, path)
+        assert path.exists()
+
+        # load csv file (header & data)
+        header = []
+        with open(path, 'r') as file:
+            while (line := file.readline().strip()).startswith('#'):
+                header.append(line[1:])
+        header = OmegaConf.create('\n'.join(header))
+        actual_df = pd.read_csv(path, comment='#')
+
+        # compare saved comment header
+        # (attrs is saved in a yaml compliant format, so we just check the structure)
+        assert header == df.attrs
+
+        # compare data frames
+        tm.assert_frame_equal(actual_df, df)
+
+    def test_discard_attributes(self, tmp_path):
+        df = pd.DataFrame(
+            data=dict(
+                A=[1.1, 2.2, 3.3],
+                B=['aa', 'bb', 'cc'],
+            )
+        )
+        df.attrs.update(
+            dict(
+                date='2024-04-27',
+                trial=3,
+                inlet=dict(flow_rate='1.0L/min', T='20^C'),
+            )
+        )
+        path = tmp_path / 'data.csv'
+
+        # write csv data (will save attrs by default)
+        writer = DataFrameWriteCSV(attributes='discard')
+        writer.run(df, path)
+        assert path.exists()
+
+        # load csv file (header & data)
+        header = []
+        with open(path, 'r') as file:
+            while (line := file.readline().strip()).startswith('#'):
+                header.append(line[1:])
+        header = OmegaConf.create('\n'.join(header))
+        actual_df = pd.read_csv(path, comment='#')
+
+        # compare saved comment header
+        # (attrs is saved in a yaml compliant format, so we just check the structure)
+        assert header == {}
+
+        # compare data frames
+        tm.assert_frame_equal(actual_df, df)
 
 
 class TestDataFrameCSVCache:

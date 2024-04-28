@@ -1,4 +1,5 @@
 import logging
+import textwrap
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, cast
 
@@ -8,6 +9,7 @@ import pandas.arrays
 import pint_pandas
 import pint_pandas.pint_array
 import pydantic
+from omegaconf import OmegaConf
 
 from .._typing import FilePath, ReadCsvBuffer, WriteBuffer
 from ..process import Cache, Loader, Writer
@@ -120,7 +122,7 @@ class DataFrameReadCSV(DataFrameReadCSVBase):
 
 IndexHandling = bool | Literal['reset-named'] | Literal['reset']
 UnitHandling = Literal['auto', 'keep-units', 'dequantify']
-AttributesHandling = Literal['auto', 'keep', 'discard']
+AttributesHandling = Literal['auto', 'discard']
 
 
 class DataFrameWriteCSV(Writer):
@@ -133,6 +135,7 @@ class DataFrameWriteCSV(Writer):
     options: Dict[str, Any] = pydantic.Field(default_factory=dict)  # type: ignore
     date_format: Optional[str] = r'%Y-%m-%dT%H:%M:%S.%f'
     units: UnitHandling = 'auto'
+    attributes: AttributesHandling = 'auto'
 
     def run(
         self,
@@ -143,6 +146,24 @@ class DataFrameWriteCSV(Writer):
         # safe reference to input value to return
         input = source
 
+        # create paths if necessary
+        if isinstance(filename, FilePath):
+            filename = self.ensure_path(filename)
+            with open(filename, 'w', encoding="utf8") as buffer:
+                self._write(source, buffer, **kwargs)
+        else:
+            buffer = filename
+            self._write(source, buffer, **kwargs)
+
+        # return unaltered data as input for the next process
+        return input
+
+    def _write(
+        self,
+        source: pd.DataFrame,
+        buffer: WriteBuffer[str] | WriteBuffer[bytes],
+        **kwargs,
+    ):
         # setup options for write_csv
         write_csv_options: Dict[str, Any] = dict(
             sep=self.separator,
@@ -155,8 +176,6 @@ class DataFrameWriteCSV(Writer):
         write_csv_options['index'] = index
 
         # promote units to multi-index header
-        # if kwargs.pop('dequantify', self.dequantify):
-        #     source = source.pint.dequantify()
         match kwargs.pop('units', self.units):
             case 'auto':
                 if not source.select_dtypes('pint[]').empty:  # type: ignore
@@ -166,19 +185,18 @@ class DataFrameWriteCSV(Writer):
             case 'keep-units':
                 pass
 
+        # save attributes as comment
+        attributes = kwargs.pop('attributes', self.attributes)
+        if (attributes == 'auto') and source.attrs:
+            yaml = OmegaConf.to_yaml(OmegaConf.create(source.attrs))
+            buffer.write(textwrap.indent(yaml, '# '))
+
         # merge process configuration with runtime keyword arguments
         write_csv_options |= self.options
         write_csv_options |= kwargs
 
-        # create paths if necessary
-        if isinstance(filename, FilePath):
-            filename = self.ensure_path(filename)
-
         # write data to csv
-        source.to_csv(filename, **write_csv_options)  # type: ignore
-
-        # return unaltered data
-        return input
+        source.to_csv(buffer, **write_csv_options)  # type: ignore
 
     def _handle_indices(self, source: pd.DataFrame, index: IndexHandling):
         match index:
