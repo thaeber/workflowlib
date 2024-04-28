@@ -420,11 +420,11 @@ class TestDataFrameWriteCSV:
 
         # load csv file (header & data)
         header = []
-        with open(path, 'r') as file:
+        with open(path, 'r', encoding='utf-8') as file:
             while (line := file.readline().strip()).startswith('#'):
                 header.append(line[1:])
         header = OmegaConf.create('\n'.join(header))
-        actual_df = pd.read_csv(path, comment='#')
+        actual_df = pd.read_csv(path, comment='#', encoding='utf-8')
 
         # compare saved comment header
         # (attrs is saved in a yaml compliant format, so we just check the structure)
