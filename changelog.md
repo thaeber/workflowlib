@@ -1,4 +1,15 @@
 <!-- insertion marker -->
+<a name="v0.1.9"></a>
+
+## [v0.1.9](https://github.com/thaeber/rdmlibpy/compare/v0.1.8...v0.1.9) (2024-04-29)
+
+### Bug Fixes
+
+- DataFrameWriteCSV -> Prevents blank lines from being written between rows of the data frame :bug: ([5825908](https://github.com/thaeber/rdmlibpy/commit/5825908276323d57a4d2b802d8b6cf86c53545f4))
+- DataFrameWriteCSV => Fix writing attrs property when data frame contains pint columns :bug: ([f123de1](https://github.com/thaeber/rdmlibpy/commit/f123de1d0a741d87d29f1bc0e35f8f65b5e69507))
+- Explicitly set utf-8 encoding when reading and writing text files :bug: ([7575ba0](https://github.com/thaeber/rdmlibpy/commit/7575ba04f1cfc9b38b92093f12f47ad2e714a9be))
+- :bug: Explicitly set utf-8 encoding when reading and writing text files ([a2a9eff](https://github.com/thaeber/rdmlibpy/commit/a2a9effef583368f52b24fd55556a96ec50f011e))
+
 <a name="v0.1.8"></a>
 
 ## [v0.1.8](https://github.com/thaeber/rdmlibpy/compare/v0.1.7...v0.1.8) (2024-04-28)
