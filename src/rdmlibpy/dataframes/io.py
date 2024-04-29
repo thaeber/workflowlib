@@ -1,4 +1,5 @@
 import logging
+import os
 import textwrap
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, cast
@@ -151,7 +152,7 @@ class DataFrameWriteCSV(Writer):
         # create paths if necessary
         if isinstance(filename, FilePath):
             filename = self.ensure_path(filename)
-            with open(filename, 'w', encoding="utf8") as buffer:
+            with open(filename, 'w', encoding='utf-8', newline='\n') as buffer:
                 self._write(source, buffer, **kwargs)
         else:
             buffer = filename

@@ -507,6 +507,19 @@ class TestDataFrameWriteCSV:
         # compare data frames
         tm.assert_frame_equal(actual_df, df)
 
+    def test_no_empty_lines_between_rows(self, tmp_path: Path):
+        df = pd.DataFrame(data=dict(A=[1.1, 2.2, 3.3], B=['aa', 'bb', 'cc']))
+        path = tmp_path / 'data.csv'
+
+        serializer = DataFrameWriteCSV(separator=';')
+        serializer.run(df, path)
+
+        # load file contents
+        with open(path, 'r') as file:
+            lines = file.readlines()
+
+        assert lines == ['A;B\n', '1.1;aa\n', '2.2;bb\n', '3.3;cc\n']
+
 
 class TestDataFrameCSVCache:
     def test_create(self):
