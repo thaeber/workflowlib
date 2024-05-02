@@ -1,0 +1,61 @@
+date: 2023-10-10
+title: Light-off curves for CH4 oxidation in new channel reactor
+tag: on root node
+defines: Collision with function name
+
+inlet:
+  flow_rate: 1.0L/min
+  temperature: 293K
+  composition:
+    CH4: 3200ppm
+    O2: 10%
+    N2: "*"
+
+tags: [CH4Oxidation, Channel, LightOff]
+
+_files:
+  tclogger: ${oc.env:RAW_DATA_PATH}/TCLog/2023-10-10T09-19-56.csv
+  ftir: ${oc.env:RAW_DATA_PATH}/TCLog/2023-10-10T09-19-56.csv
+
+data:
+  ###
+  - id: 2023-10-10A
+    tag: light-off
+    start: 2023-10-10T09:21:57
+    stop: 2023-10-10T11:25:09
+    steps: &steps
+      - loader: tclogger@v1
+        with:
+          source: ${_files.tclogger}
+          start: ${....start}
+          stop: ${....stop}
+      - loader: mksftir@v1
+        with:
+          source: ${_files.ftir}
+          start: ${....start}
+          stop: ${....stop}
+  - id: 2023-10-10B
+    tag: inlet
+    start: 2023-10-10T12:28:50
+    stop: 2023-10-10T12:33:24
+    steps: *steps
+  - id: 2023-10-10C
+    tag: light-out
+    start: 2023-10-10T12:38:57
+    stop: 2023-10-10T14:27:19
+    steps: *steps
+  - id: 2023-10-10D
+    tag: inlet
+    start: 2023-10-10T14:28:46
+    stop: 2023-10-10T14:32:59
+    steps: *steps
+  - id: 2023-10-10E
+    tag: light-off
+    start: 2023-10-10T14:35:05
+    stop: 2023-10-10T16:17:17
+    steps: *steps
+  - id: 2023-10-10F
+    tag: inlet
+    start: 2023-10-10T16:19:59
+    stop: 2023-10-10T16:24:46
+    steps: *steps

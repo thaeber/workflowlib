@@ -1,0 +1,72 @@
+date: 2023-10-11
+title: Light-off curves for CH4 oxidation in new channel reactor
+sample-id: Plate2302C
+sample-note: 2% Pd/Al2O3
+
+inlet:
+  flow_rate: 1.0L/min
+  temperature: 293K
+  composition:
+    CH4: 3200ppm
+    O2: 10%
+    N2: "*"
+
+_files:
+  tclogger: ${oc.env:RAW_DATA_PATH}/${date}/TCLog/2023-10-11T08-50-13.csv
+  ftir: ${oc.env:RAW_DATA_PATH}/${date}/FTIR/2023-10-11-conc.prn
+
+data:
+  ###
+  - id: 2023-10-11A
+    tag: light-off
+    start: 2023-10-11T09:42:09
+    stop: 2023-10-11T11:54:28
+    steps: &steps
+      - loader: tclogger@v1
+        with:
+          source: ${_files.tclogger}
+          start: ${....start}
+          stop: ${....stop}
+          select: { temperature: sample-downstream }
+      - loader: mksftir@v1
+        with:
+          source: ${_files.ftir}
+          start: ${....start}
+          stop: ${....stop}
+          select:
+            "CH4": "CH4 (3000) 191C (2of2)"
+            "CO": "CO (500) 191C (1of3)"
+            "CO2": "CO2 low% (4) 191C (2of2)"
+            "H2O": "H2O% (25) 191C"
+            "NO": "NO (350,3000) 191C"
+            "NO2": "NO2 (150) 191C (1of2)"
+  ###
+  - id: 2023-10-11B
+    tag: inlet
+    start: 2023-10-11T11:56:37
+    stop: 2023-10-11T12:00:06
+    steps: *steps
+  ###
+  - id: 2023-10-11C
+    tag: light-out
+    start: 2023-10-11T12:03:04
+    stop: 2023-10-11T13:54:50
+    steps: *steps
+  ###
+  - id: 2023-10-11D
+    tag: light-off
+    start: 2023-10-11T13:57:21
+    stop: 2023-10-11T15:38:33
+    steps: *steps
+  ###
+  - id: 2023-10-11E
+    tag: inlet
+    start: 2023-10-11T15:40:05
+    stop: 2023-10-11T15:44:44
+    steps: *steps
+  ###
+  - id: 2023-10-11F
+    tag: light-out
+    start: 2023-10-11T15:46:34
+    stop: 2023-10-11T17:28:03
+    steps: *steps
