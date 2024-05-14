@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import collections.abc
+from os import PathLike
 from pathlib import Path
 from typing import Any, ByteString, Mapping, Optional, Sequence, Type
 
@@ -162,7 +163,7 @@ class Metadata:
         return Metadata(conf)
 
     @staticmethod
-    def load_yaml(filename: str | Path):
+    def load_yaml(filename: PathLike):
         filename = Path(filename)
         conf = OmegaConf.load(filename)
         return Metadata(conf)
@@ -174,3 +175,7 @@ class Metadata:
     @staticmethod
     def to_container(metadata: MetadataNode, *, resolve: bool = True):
         return OmegaConf.to_container(metadata._container, resolve=resolve)
+
+
+def load_yaml(filename: PathLike):
+    return Metadata.load_yaml(filename)
