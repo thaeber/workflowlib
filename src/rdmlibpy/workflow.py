@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from collections import deque
-from typing import Any, Dict, Mapping, Optional, Sequence
+from typing import Any, Dict, Mapping, Optional, Sequence, cast
 
 from . import base
 from .registry import get_runner
+from .metadata import MetadataNode, Metadata
 
-ProcessDescriptorType = Mapping[str, Any]
+ProcessDescriptorType = Mapping[str, Any] | MetadataNode
 WorkflowDescriptorType = ProcessDescriptorType | Sequence['WorkflowDescriptorType']
 
 
@@ -23,6 +24,8 @@ class Workflow:
 
     @staticmethod
     def create(descriptor: WorkflowDescriptorType):
+        if isinstance(descriptor, MetadataNode):
+            descriptor = cast(dict, Metadata.to_container(descriptor))
         return Workflow(Workflow._create(None, descriptor))
 
     @staticmethod
