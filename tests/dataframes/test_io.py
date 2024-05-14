@@ -521,7 +521,7 @@ class TestDataFrameWriteCSV:
         assert lines == ['A;B\n', '1.1;aa\n', '2.2;bb\n', '3.3;cc\n']
 
 
-class TestDataFrameCSVCache:
+class TestDataFrameFileCache:
     def test_create(self):
         cache = DataFrameFileCache()
 
