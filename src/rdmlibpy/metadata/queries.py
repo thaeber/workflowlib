@@ -1,6 +1,6 @@
 from typing import Any, Callable, Dict, List, Sequence
 
-from ._metadata import MetadataDict, MetadataNode
+from .metadata import MetadataDict, MetadataNode
 
 
 class MetadataQuery:

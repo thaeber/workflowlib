@@ -1,8 +1,8 @@
 # set package version
 __version__ = '0.1.1'
 
-from ._metadata import Metadata, MetadataDict, MetadataList, MetadataNode
-from ._queries import query
+from .metadata import Metadata, MetadataDict, MetadataList, MetadataNode
+from .queries import query
 from .resolvers import register_custom_resolvers
 
 # register custom resolvers
