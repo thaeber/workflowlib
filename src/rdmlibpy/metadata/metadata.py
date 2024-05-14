@@ -122,6 +122,9 @@ class MetadataNode:
     def __len__(self) -> int:
         return len(self._container)
 
+    def __contains__(self, item):
+        return item in self._container
+
 
 class MetadataDict(MetadataNode, collections.abc.Mapping):
     def __init__(self, parent: None | MetadataNode, container: Mapping[str, Any]):

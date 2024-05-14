@@ -124,6 +124,40 @@ class TestAccessors:
         # 'tag' overridden on child node
         assert sample_data.data[0].tag == 'light-off'
 
+    def test_in_operator_for_mapping_node(self):
+        sample_data = Metadata(
+            dict(CH4='3200ppm', O2='10%', N2='*'),
+        )
+
+        contains_Ar = 'Ar' in sample_data
+        assert contains_Ar == False
+
+        contains_CH4 = 'CH4' in sample_data
+        assert contains_CH4 == True
+
+        does_not_contain_NH3 = 'NH3' not in sample_data
+        assert does_not_contain_NH3 == True
+
+        does_not_contain_CH4 = 'CH4' not in sample_data
+        assert does_not_contain_CH4 == False
+
+    def test_in_operator_for_list_node(self):
+        sample_data = Metadata(
+            ['CH4', 'O2', 'N2'],
+        )
+
+        contains_Ar = 'Ar' in sample_data
+        assert contains_Ar == False
+
+        contains_CH4 = 'CH4' in sample_data
+        assert contains_CH4 == True
+
+        does_not_contain_NH3 = 'NH3' not in sample_data
+        assert does_not_contain_NH3 == True
+
+        does_not_contain_CH4 = 'CH4' not in sample_data
+        assert does_not_contain_CH4 == False
+
 
 class TestIteration:
     def test_len(self):
