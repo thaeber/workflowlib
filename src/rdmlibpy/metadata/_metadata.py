@@ -1,7 +1,9 @@
 # %%
+from __future__ import annotations
+
 import collections.abc
 from pathlib import Path
-from typing import Any, ByteString, Mapping, NamedTuple, Optional, Sequence, Type
+from typing import Any, ByteString, Mapping, Optional, Sequence, Type
 
 from omegaconf import OmegaConf
 
@@ -21,7 +23,28 @@ class MetadataNode:
         self._container: Any = container
 
     @staticmethod
-    def _get_child_node_impl(parent: Optional['MetadataNode'], item: Any):
+    def _wrap_container(
+        parent: Optional[MetadataNode], container: Mapping[str, Any] | Sequence[Any]
+    ) -> MetadataNode:
+        if isinstance(container, Mapping):
+            return MetadataDict(parent, container)
+        elif isinstance(container, Sequence):
+            return MetadataList(parent, container)
+        else:
+            raise ValueError('Container must be a mapping or a sequence.')
+
+    @staticmethod
+    def _needs_wrapping(container: Any):
+        if isinstance(container, (str, ByteString)):
+            # special treatment of str/bytes since it would be treated as a sequence of characters
+            return False
+        elif isinstance(container, Mapping) or isinstance(container, Sequence):
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def _get_child_node_impl(parent: Optional[MetadataNode], item: Any):
         if isinstance(item, (str, ByteString)):
             return item
         if isinstance(item, Mapping):
@@ -31,8 +54,11 @@ class MetadataNode:
         else:
             return item
 
-    def _get_child_node(self, item: Any):
-        return MetadataNode._get_child_node_impl(self, item)
+    def _wrap_child_node(self, item: Any):
+        if MetadataNode._needs_wrapping(item):
+            return MetadataNode._wrap_container(self, item)
+        else:
+            return item
 
     def _try_get_item(self, key: str | int):
         try:
@@ -76,7 +102,7 @@ class MetadataNode:
                 'Merging of inherited containers has not been implemented'
             )
 
-        return self._get_child_node(item)
+        return self._wrap_child_node(item)
 
     def __getattr__(self, key: str) -> Any:
         """
@@ -96,19 +122,13 @@ class MetadataNode:
         return len(self._container)
 
 
-class MetadataKeyValuePair(NamedTuple):
-    key: str | int
-    value: Any
-
-
 class MetadataDict(MetadataNode, collections.abc.Mapping):
     def __init__(self, parent: None | MetadataNode, container: Mapping[str, Any]):
         super().__init__(parent, container)
 
     def __iter__(self):
         for key in self._container:
-            item = self._get_child_node(self._container[key])
-            yield MetadataKeyValuePair(key, item)
+            yield key
 
     def __defines__(self, keys: str | Sequence[str]):
         if isinstance(keys, str):
@@ -121,17 +141,20 @@ class MetadataList(MetadataNode, collections.abc.Sequence):
         super().__init__(parent, container)
 
     def __iter__(self):
-        for key, item in enumerate(self._container):
-            item = self._get_child_node(item)
-            yield MetadataKeyValuePair(key, item)
+        for item in self._container:
+            yield self._wrap_child_node(item)
+
+    def items(self):
+        for index, item in enumerate(self._container):
+            yield (index, self._wrap_child_node(item))
 
 
 class Metadata:
     def __new__(
         cls,
         container: Mapping[str, Any] | Sequence[Any],
-    ) -> MetadataNode:
-        return MetadataNode._get_child_node_impl(None, container)
+    ):
+        return MetadataNode._wrap_container(None, container)
 
     @staticmethod
     def create(yaml_string: str) -> MetadataNode:
@@ -151,10 +174,3 @@ class Metadata:
     @staticmethod
     def to_container(metadata: MetadataNode, *, resolve: bool = True):
         return OmegaConf.to_container(metadata._container, resolve=resolve)
-
-
-# meta = Metadata.load_yaml(
-#     # r'\\os.lsdf.kit.edu\kit\itcp\projects\cathlen\2023-10-CH4-Oxidation\raw\2023-10-10\2023-10-10.yaml'
-#     r'C:\Users\vs2418\Repos\CH4Ox\lib\metalib2\tests\data\2023-10-10.yaml'
-# )
-# print(Metadata.to_yaml(meta))

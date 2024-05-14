@@ -41,18 +41,18 @@ class MetadataQuery:
                 yield node
 
     def keys(self) -> List[str] | List[int]:
-        return [key for key, _ in self._node]
+        return [key for key, _ in self._node.items()]
 
     def values(self) -> List[Any]:
-        return [value for _, value in self._node]
+        return [value for _, value in self._node.items()]
 
     def kvdict(self) -> Dict[str, Any]:
-        return {k: v for k, v in self._node}
+        return {k: v for k, v in self._node.items()}
 
     def iter_children(self, *, recursive: bool = False):
         """
         Iterates over all child nodes. Only child nodes that represent
-        key/value mappings ar sequences are returned.
+        key/value mappings or sequences are returned.
         """
         for node in self.values():
             if isinstance(node, MetadataNode):
@@ -62,7 +62,7 @@ class MetadataQuery:
 
     def children(self, *, recursive: bool = False):
         """Returns a list of child nodes. The list only includes child nodes
-        that are key/value mappings ar sequences themselves."""
+        that are key/value mappings or sequences themselves."""
         return list(iter(self.iter_children(recursive=recursive)))
 
 
