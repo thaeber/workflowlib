@@ -181,3 +181,62 @@ class TestMetadataQuery:
             recursive=False,
         )
         assert sum(1 for _ in items) == 0
+
+    def test_find_ignores_private_keys_by_default(self):
+        sample_data = Metadata(
+            dict(
+                date='2024-05-14',
+                tag='root',
+                tags=['CH4-oxidation', 'channel', 'light-off'],
+                inlet=dict(
+                    flow_rate='1.0L/min',
+                    temperature='293K',
+                    composition=dict(CH4='3200ppm', O2='10%', N2='*'),
+                ),
+                __process__=dict(id='process'),
+                data=[
+                    dict(id='A', tag='light-off'),
+                    dict(id='B', tag='light-out'),
+                ],
+            ),
+        )
+
+        # by default `find` will recurse over the children of its children
+        items = list(
+            query(sample_data).find(lambda node: query(node).defines('id')),
+        )
+        assert len(items) == 2
+
+        assert items[0].id == 'A'
+        assert items[1].id == 'B'
+
+    def test_find_include_private_keys(self):
+        sample_data = Metadata(
+            dict(
+                date='2024-05-14',
+                tag='root',
+                tags=['CH4-oxidation', 'channel', 'light-off'],
+                inlet=dict(
+                    flow_rate='1.0L/min',
+                    temperature='293K',
+                    composition=dict(CH4='3200ppm', O2='10%', N2='*'),
+                ),
+                __process__=dict(id='process'),
+                data=[
+                    dict(id='A', tag='light-off'),
+                    dict(id='B', tag='light-out'),
+                ],
+            ),
+        )
+
+        # by default `find` will recurse over the children of its children
+        items = list(
+            query(sample_data, include_private_keys=True).find(
+                lambda node: query(node).defines('id')
+            ),
+        )
+        assert len(items) == 3
+
+        assert items[0].id == 'process'
+        assert items[1].id == 'A'
+        assert items[2].id == 'B'

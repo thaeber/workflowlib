@@ -4,10 +4,19 @@ from .metadata import MetadataDict, MetadataNode
 
 
 class MetadataQuery:
-    def __init__(self, node: MetadataNode):
+    def __init__(self, node: MetadataNode, *, include_private_keys=False):
         if not isinstance(node, MetadataNode):
             raise TypeError("`node` must be of type `MetadataNode`")
         self._node = node
+        self._include_private_keys = include_private_keys
+
+    def _key_is_valid(self, key):
+        if self._include_private_keys:
+            return True
+        elif isinstance(key, str):
+            return not (key.startswith('__') and key.endswith('__'))
+        else:
+            return True
 
     def defines(self, keys: str | Sequence[str]):
         """
@@ -41,13 +50,15 @@ class MetadataQuery:
                 yield node
 
     def keys(self) -> List[str] | List[int]:
-        return [key for key, _ in self._node.items()]
+        return [key for key, _ in self._node.items() if self._key_is_valid(key)]
 
     def values(self) -> List[Any]:
-        return [value for _, value in self._node.items()]
+        return [value for key, value in self._node.items() if self._key_is_valid(key)]
 
     def kvdict(self) -> Dict[str, Any]:
-        return {k: v for k, v in self._node.items()}
+        return {
+            key: value for key, value in self._node.items() if self._key_is_valid(key)
+        }
 
     def iter_children(self, *, recursive: bool = False):
         """
@@ -66,5 +77,5 @@ class MetadataQuery:
         return list(iter(self.iter_children(recursive=recursive)))
 
 
-def query(node: MetadataNode):
-    return MetadataQuery(node)
+def query(node: MetadataNode, *, include_private_keys=False):
+    return MetadataQuery(node, include_private_keys=include_private_keys)
