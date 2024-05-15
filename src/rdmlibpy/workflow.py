@@ -48,21 +48,27 @@ class Workflow:
         parent: Optional[base.ProcessNode], process: ProcessDescriptorType
     ) -> base.ProcessNode:
         # create a single process node from the descriptor (mapping)
+        RUN_KEY = 'run'
+        PROCESS_KEY = '__process__'
+        CONFIG_KEY = 'config'
+        PARAMS_KEY = 'params'
 
-        # check if the process contains a `run` element
-        if 'run' not in process:
+        # check if the process contains a `run` or `__process__` element
+        if RUN_KEY not in process:
+            if PROCESS_KEY in process:
+                return Workflow._create(parent, process[PROCESS_KEY])
             raise ValueError(
                 'The process parameters do not contain a `run` element.\n'
                 + '\n'.join([f'{key}: {value}' for key, value in process.items()])
             )
 
         # get runner
-        runner = get_runner(process['run'], **process.get('config', dict()))
+        runner = get_runner(process[RUN_KEY], **process.get(CONFIG_KEY, dict()))
 
         # get keyword arguments (anything except reserved keys)
         params: Dict[str, Any] = {}
-        if 'params' in process:
-            for key, value in process['params'].items():
+        if PARAMS_KEY in process:
+            for key, value in process[PARAMS_KEY].items():
                 if key.startswith('$'):
                     # value itself is a process
                     params[key[1:]] = base.RunnableProcessParam(
