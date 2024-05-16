@@ -1,4 +1,30 @@
 <!-- insertion marker -->
+<a name="v0.1.10"></a>
+
+## [v0.1.10](https://github.com/thaeber/rdmlibpy/compare/v0.1.9...v0.1.10) (2024-05-16)
+
+### Bug Fixes
+
+- Accessing metadata with an invalid key will now raise KeyError ([61ebdf5](https://github.com/thaeber/rdmlibpy/commit/61ebdf5ef6dd79dc0b93bdf6c8a1438d39a743c2))
+- Converting metadata nodes to regular python objects before running a process ([dd88efb](https://github.com/thaeber/rdmlibpy/commit/dd88efb331e7a3064978c800d70eb050f383b1fa))
+- Missing import of load_yaml function ([ced94c7](https://github.com/thaeber/rdmlibpy/commit/ced94c75065d380d9f8a4033c688c791d2876bf0))
+
+### Features
+
+- Metadata resolver to subtract a given timedelta value from a timestamp ([902baa7](https://github.com/thaeber/rdmlibpy/commit/902baa731f6debc33cb33b6efa2d41c6453a5bf6))
+- Exclude private keys from metadata queries ([43fa699](https://github.com/thaeber/rdmlibpy/commit/43fa69913c6734b9644890ef4ee4aeed752d1683))
+- Supporting in and not in operators on metadata ([946efac](https://github.com/thaeber/rdmlibpy/commit/946efaccaf8b9bb9cf16462a745ba829618a596a))
+- Added convenience function load_yaml to load metadata ([cd99ec3](https://github.com/thaeber/rdmlibpy/commit/cd99ec3c34d4c505c4adf1f4e67335e72c8c237a))
+- Adding metadata classes and queries to rdmlib (#10) ([78ea382](https://github.com/thaeber/rdmlibpy/commit/78ea382e23b612c535a1d2b9a60eced58f7e7359))
+
+### Code Refactoring
+
+- Define constants for recurring mapping keys ([7dcfd89](https://github.com/thaeber/rdmlibpy/commit/7dcfd8975a9383b1be8a37134be54127f579e1ff))
+- Renamed test class to TestDataFrameFileCache ([ea06c9f](https://github.com/thaeber/rdmlibpy/commit/ea06c9fd0400448d205103f98d8d052b3a3cf83d))
+
+### Chore
+
+- pre-commit run -a ([20436d1](https://github.com/thaeber/rdmlibpy/commit/20436d1bc0be0f5c94170ed8996e75e6afd3f1db))
 
 <a name="v0.1.9"></a>
 
@@ -10,6 +36,11 @@
 - DataFrameWriteCSV => Fix writing attrs property when data frame contains pint columns :bug: ([f123de1](https://github.com/thaeber/rdmlibpy/commit/f123de1d0a741d87d29f1bc0e35f8f65b5e69507))
 - Explicitly set utf-8 encoding when reading and writing text files :bug: ([7575ba0](https://github.com/thaeber/rdmlibpy/commit/7575ba04f1cfc9b38b92093f12f47ad2e714a9be))
 - :bug: Explicitly set utf-8 encoding when reading and writing text files ([a2a9eff](https://github.com/thaeber/rdmlibpy/commit/a2a9effef583368f52b24fd55556a96ec50f011e))
+
+### Chore
+
+- Running pre-commit ([d3ce1b7](https://github.com/thaeber/rdmlibpy/commit/d3ce1b7b2c47cda099b7d3a832e0165ce9d475e0))
+- Updated changelog ([df1c709](https://github.com/thaeber/rdmlibpy/commit/df1c70980ed6458f39a4030e6689418849bb2258))
 
 <a name="v0.1.8"></a>
 
@@ -23,7 +54,7 @@
 - Renamed "target" parameter to "filename" ([33d31e3](https://github.com/thaeber/rdmlibpy/commit/33d31e3011b78ab4999d8e7d21d781e2cc0840c3))
 - Test for process id ([41203c0](https://github.com/thaeber/rdmlibpy/commit/41203c0169b2a6ce3ddf4a2c092b0566b29ed58c))
 - Fixed typo in "dataframe.cache" process id (#9) ([f6acb32](https://github.com/thaeber/rdmlibpy/commit/f6acb32ef7c1026d6a1f4c0f956605ec1fc72d64))
-- Renamed process to "dataframe.\[read|write\].csv" for consistency (#8) ([a9a7132](https://github.com/thaeber/rdmlibpy/commit/a9a7132bd19118838a1f4acbaf21b217692fd33b))
+- Renamed process to "dataframe.[read|write].csv" for consistency (#8) ([a9a7132](https://github.com/thaeber/rdmlibpy/commit/a9a7132bd19118838a1f4acbaf21b217692fd33b))
 - DataFrameWriteCSV.run() did not return input value (#7) ([a297aa0](https://github.com/thaeber/rdmlibpy/commit/a297aa03a556fca1684b20fc2cda6c26855834cd))
 
 ### Features
@@ -76,7 +107,7 @@
 
 ### Style
 
-- Renamed "select.\[columns|timespan\]" to "dataframe.select.\[columns|timespan\]" (#4) ([eb32028](https://github.com/thaeber/rdmlibpy/commit/eb320282b9696a6c1fbe45e44f76f00a84604603))
+- Renamed "select.[columns|timespan]" to "dataframe.select.[columns|timespan]" (#4) ([eb32028](https://github.com/thaeber/rdmlibpy/commit/eb320282b9696a6c1fbe45e44f76f00a84604603))
 
 <a name="v0.1.3"></a>
 
@@ -89,3 +120,4 @@
 <a name="v0.1.1"></a>
 
 ## [v0.1.1](https://github.com/thaeber/rdmlibpy/compare/b6e05adfa1b72a75295601854b5caaedc1876993...v0.1.1) (2024-04-01)
+
