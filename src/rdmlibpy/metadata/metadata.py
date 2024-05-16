@@ -37,7 +37,8 @@ class MetadataNode:
     @staticmethod
     def _needs_wrapping(container: Any):
         if isinstance(container, (str, ByteString)):
-            # special treatment of str/bytes since it would be treated as a sequence of characters
+            # special treatment of str/bytes since it would be treated as
+            # a sequence of characters
             return False
         elif isinstance(container, Mapping) or isinstance(container, Sequence):
             return True
@@ -64,7 +65,11 @@ class MetadataNode:
     def _try_get_item(self, key: str | int):
         try:
             return self._container[key]
-        except:
+        except KeyError:
+            # raised when accessing mapping with an invalid key
+            return None
+        except TypeError:
+            # raised when accessing a list with a non-integer index
             return None
 
     def _iter_inheritance_chain(self, key: str | int):
@@ -96,7 +101,7 @@ class MetadataNode:
                 item = next(items)
             except StopIteration:
                 # there is no key with that name/value, just return None
-                item = None
+                raise KeyError(f'No item matches the given key: {key}')
         else:
             # handle merging
             raise NotImplementedError(

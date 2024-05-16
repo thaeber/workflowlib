@@ -1,3 +1,4 @@
+import pytest
 from rdmlibpy.metadata import Metadata, MetadataDict, MetadataList
 
 
@@ -130,16 +131,16 @@ class TestAccessors:
         )
 
         contains_Ar = 'Ar' in sample_data
-        assert contains_Ar == False
+        assert contains_Ar is False
 
         contains_CH4 = 'CH4' in sample_data
-        assert contains_CH4 == True
+        assert contains_CH4 is True
 
         does_not_contain_NH3 = 'NH3' not in sample_data
-        assert does_not_contain_NH3 == True
+        assert does_not_contain_NH3 is True
 
         does_not_contain_CH4 = 'CH4' not in sample_data
-        assert does_not_contain_CH4 == False
+        assert does_not_contain_CH4 is False
 
     def test_in_operator_for_list_node(self):
         sample_data = Metadata(
@@ -147,16 +148,31 @@ class TestAccessors:
         )
 
         contains_Ar = 'Ar' in sample_data
-        assert contains_Ar == False
+        assert contains_Ar is False
 
         contains_CH4 = 'CH4' in sample_data
-        assert contains_CH4 == True
+        assert contains_CH4 is True
 
         does_not_contain_NH3 = 'NH3' not in sample_data
-        assert does_not_contain_NH3 == True
+        assert does_not_contain_NH3 is True
 
         does_not_contain_CH4 = 'CH4' not in sample_data
-        assert does_not_contain_CH4 == False
+        assert does_not_contain_CH4 is False
+
+    def test_raise_on_invalid_key(self):
+        sample_data = Metadata(
+            dict(
+                date='2024-05-14',
+                inlet=dict(flow_rate='1.0L/min', temperature='293K'),
+                data=[dict(id='A'), dict(id='B')],
+            ),
+        )
+
+        with pytest.raises(KeyError):
+            _ = sample_data.data['dummy']
+
+        with pytest.raises(KeyError):
+            _ = sample_data['dummy']
 
 
 class TestIteration:
