@@ -1,8 +1,6 @@
-from itertools import count
-
 import pytest
 
-from rdmlibpy.metadata import Metadata, MetadataDict, MetadataList, query
+from rdmlibpy.metadata import Metadata, MetadataDict, query
 
 
 class TestMetadataQuery:
@@ -26,7 +24,7 @@ class TestMetadataQuery:
         assert query(sample_data.inlet.composition).defines(['CH4', 'O2', 'N2'])
 
         # defines will fail on inherited keys
-        assert query(sample_data.inlet).defines('date') == False
+        assert query(sample_data.inlet).defines('date') is False
 
     def test_defines_throws_on_sequence(self):
         sample_data = Metadata(

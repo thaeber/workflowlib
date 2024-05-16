@@ -1,7 +1,5 @@
-import os
 from pathlib import Path
 import pytest
-from rdmlibpy.metadata import Metadata
 
 
 @pytest.fixture(scope='function')

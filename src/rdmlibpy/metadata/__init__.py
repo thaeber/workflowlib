@@ -11,6 +11,8 @@ register_custom_resolvers()
 __all__ = [
     Metadata,
     MetadataNode,
+    MetadataDict,
+    MetadataList,
     load_yaml,
     query,
     register_custom_resolvers,
