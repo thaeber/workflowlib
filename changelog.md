@@ -1,5 +1,21 @@
 <!-- insertion marker -->
 
+<a name="v0.1.12"></a>
+
+## [v0.1.12](https://github.com/thaeber/rdmlibpy/compare/v0.1.11...v0.1.12) (2024-06-28)
+
+### Bug Fixes
+
+- Pandas 3.0 deprecation warning ([e7c588a](https://github.com/thaeber/rdmlibpy/commit/e7c588a6b3b490dda8af9b5bf431285e678e4539))
+
+<a name="v0.1.11"></a>
+
+## [v0.1.11](https://github.com/thaeber/rdmlibpy/compare/v0.1.10...v0.1.11) (2024-06-22)
+
+### Features
+
+- Channel Eurotherm V1.1 includes power output ([5280b83](https://github.com/thaeber/rdmlibpy/commit/5280b83c23e9589e2fbf8fc1bc975d1e5f9c5bfc))
+
 <a name="v0.1.10"></a>
 
 ## [v0.1.10](https://github.com/thaeber/rdmlibpy/compare/v0.1.9...v0.1.10) (2024-05-16)
@@ -25,6 +41,7 @@
 
 ### Chore
 
+- Updating changelog.md ([4afb4e7](https://github.com/thaeber/rdmlibpy/commit/4afb4e7915dbbaae6b6b29bead08d468d22487c8))
 - pre-commit run -a ([20436d1](https://github.com/thaeber/rdmlibpy/commit/20436d1bc0be0f5c94170ed8996e75e6afd3f1db))
 
 <a name="v0.1.9"></a>
