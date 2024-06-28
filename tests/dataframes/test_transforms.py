@@ -7,6 +7,7 @@ import pint_pandas
 
 from rdmlibpy.dataframes import (
     DataFrameAttributes,
+    DataFrameFillNA,
     DataFrameJoin,
     DataFrameSetIndex,
     DataFrameUnits,
@@ -170,6 +171,38 @@ class TestDataFrameSetIndex:
 
         assert len(df) == 10  # type: ignore
         assert df.index.name == 'timestamp'
+
+
+class TestDataFrameFillNA:
+    def test_create_instance(self):
+        transform = DataFrameFillNA()
+
+        assert transform.name == 'dataframe.fillna'
+        assert transform.version == '1'
+
+    def test_process(self):
+        transform = DataFrameFillNA()
+        df = pd.DataFrame(dict(A=[1, 2, 3, 4, 5], B=[1.0, np.nan, np.nan, 4.0, np.nan]))
+
+        filled = transform.run(df)
+        assert list(filled.A) == [1, 2, 3, 4, 5]
+        assert list(filled.B) == [1.0, 1.0, 1.0, 4.0, 4.0]
+
+    def test_forward(self):
+        transform = DataFrameFillNA()
+        df = pd.DataFrame(dict(A=[1, 2, 3, 4, 5], B=[1.0, np.nan, np.nan, 4.0, np.nan]))
+
+        filled = transform.run(df, method='forward')
+        assert list(filled.A) == [1, 2, 3, 4, 5]
+        assert list(filled.B) == [1.0, 1.0, 1.0, 4.0, 4.0]
+
+    def test_backward(self):
+        transform = DataFrameFillNA()
+        df = pd.DataFrame(dict(A=[1, 2, 3, 4, 5], B=[1.0, np.nan, np.nan, 4.0, 5.0]))
+
+        filled = transform.run(df, method='backward')
+        assert list(filled.A) == [1, 2, 3, 4, 5]
+        assert list(filled.B) == [1.0, 4.0, 4.0, 4.0, 5.0]
 
 
 class TestDataFrameUnits:

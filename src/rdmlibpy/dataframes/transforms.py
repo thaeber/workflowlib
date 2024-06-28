@@ -161,9 +161,9 @@ class DataFrameFillNA(Transform):
             if col in exclude:
                 continue
             if method == 'forward':
-                df[col].ffill(inplace=True)
+                df[col] = df[col].ffill()
             elif method == 'backward':
-                df[col].bfill(inplace=True)
+                df[col] = df[col].bfill()
             else:
                 raise ValueError(f'Invalid fill method: {method}')
 
